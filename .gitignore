@@ -1,0 +1,37 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Compiled binaries
+poc/macos/invisible_window
+poc/windows/*.exe
+poc/linux/invisible_window_x11
+*.o
+*.obj
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Temp/eval outputs
+/tmp/
+*.tmp
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Reasoning engine database (regenerated)
+reasoning-engine/reasoning.db
+
+# Claude project files (local only)
+.claude/
+
+# MCP config (contains local paths)
+.mcp.json

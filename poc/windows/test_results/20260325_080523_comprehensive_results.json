@@ -1,0 +1,367 @@
+{
+  "test_name": "The Invisible Window - Comprehensive Windows Evaluation",
+  "timestamp": "2026-03-25T08:05:44.112618",
+  "platform": {
+    "os": "Windows",
+    "major": 10,
+    "minor": 0,
+    "build": 19045,
+    "version_string": "Windows 10.0 Build 19045"
+  },
+  "harness_data": {
+    "OS_BUILD": "19045",
+    "HWND": "0x00000000001003DA",
+    "WINDOW_RECT": "200,200,700,600",
+    "CAPTURE_SIZE": "500x400",
+    "TOTAL_PIXELS": "200000",
+    "SCREEN_SIZE": "1536x864",
+    "NUM_ROUNDS": "5",
+    "ROUND": "5",
+    "R1_AFFINITY_A": "0x00000011",
+    "R1_AFFINITY_B": "0x00000000",
+    "R1_MAGENTA_A": "0",
+    "R1_MAGENTA_B": "121604",
+    "R1_MAGENTA_C": "0",
+    "R1_MAGENTA_D_FULLSCREEN": "0",
+    "R1_DIFF_AB": "160541",
+    "R1_DIFF_AC": "0",
+    "R1_EVASION": "PASS",
+    "R2_AFFINITY_A": "0x00000011",
+    "R2_AFFINITY_B": "0x00000000",
+    "R2_MAGENTA_A": "0",
+    "R2_MAGENTA_B": "121604",
+    "R2_MAGENTA_C": "0",
+    "R2_MAGENTA_D_FULLSCREEN": "0",
+    "R2_DIFF_AB": "160541",
+    "R2_DIFF_AC": "0",
+    "R2_EVASION": "PASS",
+    "R3_AFFINITY_A": "0x00000011",
+    "R3_AFFINITY_B": "0x00000000",
+    "R3_MAGENTA_A": "0",
+    "R3_MAGENTA_B": "121604",
+    "R3_MAGENTA_C": "0",
+    "R3_MAGENTA_D_FULLSCREEN": "0",
+    "R3_DIFF_AB": "160541",
+    "R3_DIFF_AC": "0",
+    "R3_EVASION": "PASS",
+    "R4_AFFINITY_A": "0x00000011",
+    "R4_AFFINITY_B": "0x00000000",
+    "R4_MAGENTA_A": "0",
+    "R4_MAGENTA_B": "121604",
+    "R4_MAGENTA_C": "0",
+    "R4_MAGENTA_D_FULLSCREEN": "0",
+    "R4_DIFF_AB": "160541",
+    "R4_DIFF_AC": "0",
+    "R4_EVASION": "PASS",
+    "R5_AFFINITY_A": "0x00000011",
+    "R5_AFFINITY_B": "0x00000000",
+    "R5_MAGENTA_A": "0",
+    "R5_MAGENTA_B": "121604",
+    "R5_MAGENTA_C": "0",
+    "R5_MAGENTA_D_FULLSCREEN": "0",
+    "R5_DIFF_AB": "160541",
+    "R5_DIFF_AC": "0",
+    "R5_EVASION": "PASS",
+    "ENUM_SELF_AFFINITY": "0x00000011",
+    "ENUM_SELF_DETECTED": "YES"
+  },
+  "pixel_analysis": [
+    {
+      "round": 1,
+      "total_pixels": 200000,
+      "capture_size": "500x400",
+      "magenta_A_excluded": 0,
+      "magenta_B_visible": 121604,
+      "magenta_C_re_excluded": 0,
+      "magenta_D_fullscreen": 0,
+      "green_text_A": 0,
+      "green_text_B": 7271,
+      "pixel_diff_AB": 160541,
+      "pixel_diff_AB_pct": 80.2705,
+      "diff_AC": 0,
+      "evasion_pass": "True",
+      "mean_color_A": [
+        12.0,
+        12.0,
+        12.0
+      ],
+      "mean_color_B": [
+        184.1,
+        37.8,
+        184.0
+      ]
+    },
+    {
+      "round": 2,
+      "total_pixels": 200000,
+      "capture_size": "500x400",
+      "magenta_A_excluded": 0,
+      "magenta_B_visible": 121604,
+      "magenta_C_re_excluded": 0,
+      "magenta_D_fullscreen": 0,
+      "green_text_A": 0,
+      "green_text_B": 7271,
+      "pixel_diff_AB": 160541,
+      "pixel_diff_AB_pct": 80.2705,
+      "diff_AC": 0,
+      "evasion_pass": "True",
+      "mean_color_A": [
+        12.0,
+        12.0,
+        12.0
+      ],
+      "mean_color_B": [
+        184.1,
+        37.8,
+        184.0
+      ]
+    },
+    {
+      "round": 3,
+      "total_pixels": 200000,
+      "capture_size": "500x400",
+      "magenta_A_excluded": 0,
+      "magenta_B_visible": 121604,
+      "magenta_C_re_excluded": 0,
+      "magenta_D_fullscreen": 0,
+      "green_text_A": 0,
+      "green_text_B": 7271,
+      "pixel_diff_AB": 160541,
+      "pixel_diff_AB_pct": 80.2705,
+      "diff_AC": 0,
+      "evasion_pass": "True",
+      "mean_color_A": [
+        12.0,
+        12.0,
+        12.0
+      ],
+      "mean_color_B": [
+        184.1,
+        37.8,
+        184.0
+      ]
+    },
+    {
+      "round": 4,
+      "total_pixels": 200000,
+      "capture_size": "500x400",
+      "magenta_A_excluded": 0,
+      "magenta_B_visible": 121604,
+      "magenta_C_re_excluded": 0,
+      "magenta_D_fullscreen": 0,
+      "green_text_A": 0,
+      "green_text_B": 7271,
+      "pixel_diff_AB": 160541,
+      "pixel_diff_AB_pct": 80.2705,
+      "diff_AC": 0,
+      "evasion_pass": "True",
+      "mean_color_A": [
+        12.0,
+        12.0,
+        12.0
+      ],
+      "mean_color_B": [
+        184.1,
+        37.8,
+        184.0
+      ]
+    },
+    {
+      "round": 5,
+      "total_pixels": 200000,
+      "capture_size": "500x400",
+      "magenta_A_excluded": 0,
+      "magenta_B_visible": 121604,
+      "magenta_C_re_excluded": 0,
+      "magenta_D_fullscreen": 0,
+      "green_text_A": 0,
+      "green_text_B": 7271,
+      "pixel_diff_AB": 160541,
+      "pixel_diff_AB_pct": 80.2705,
+      "diff_AC": 0,
+      "evasion_pass": "True",
+      "mean_color_A": [
+        12.0,
+        12.0,
+        12.0
+      ],
+      "mean_color_B": [
+        184.1,
+        37.8,
+        184.0
+      ]
+    }
+  ],
+  "multi_api_tests": [
+    {
+      "api": ".NET Graphics.CopyFromScreen",
+      "magenta_pixels": 0,
+      "evasion": "True",
+      "file": "20260325_080523_ps_capture.png"
+    }
+  ],
+  "window_enumeration": {
+    "total_windows": 14,
+    "excluded_count": 1,
+    "monitor_count": 0,
+    "excluded_windows": [
+      {
+        "hwnd": "0xB0270",
+        "pid": 9100,
+        "class": "TestInvisibleWindow",
+        "title": "Invisible Window Test",
+        "affinity": "0x00000011",
+        "affinity_name": "WDA_EXCLUDEFROMCAPTURE",
+        "capture_excluded": true
+      }
+    ],
+    "all_windows": [
+      {
+        "hwnd": "0xB0270",
+        "pid": 9100,
+        "class": "TestInvisibleWindow",
+        "title": "Invisible Window Test",
+        "affinity": "0x00000011",
+        "affinity_name": "WDA_EXCLUDEFROMCAPTURE",
+        "capture_excluded": true
+      },
+      {
+        "hwnd": "0x40016",
+        "pid": 4908,
+        "class": "Shell_TrayWnd",
+        "title": "",
+        "affinity": "0x00000000",
+        "affinity_name": "WDA_NONE",
+        "capture_excluded": false
+      },
+      {
+        "hwnd": "0xA00EA",
+        "pid": 9100,
+        "class": "ConsoleWindowClass",
+        "title": "C:\\Users\\raoof\\invisible-window-research\\poc\\windows\\test_minimal.exe",
+        "affinity": "0x00000000",
+        "affinity_name": "WDA_NONE",
+        "capture_excluded": false
+      },
+      {
+        "hwnd": "0x303E4",
+        "pid": 2612,
+        "class": "ConsoleWindowClass",
+        "title": "\u2802 Claude Code",
+        "affinity": "0x00000000",
+        "affinity_name": "WDA_NONE",
+        "capture_excluded": false
+      },
+      {
+        "hwnd": "0xC0358",
+        "pid": 7320,
+        "class": "Windows.UI.Core.CoreWindow",
+        "title": "Microsoft Store",
+        "affinity": "0x00000000",
+        "affinity_name": "WDA_NONE",
+        "capture_excluded": false
+      },
+      {
+        "hwnd": "0x1202F6",
+        "pid": 7132,
+        "class": "ApplicationFrameWindow",
+        "title": "Microsoft Store",
+        "affinity": "0x00000000",
+        "affinity_name": "WDA_NONE",
+        "capture_excluded": false
+      },
+      {
+        "hwnd": "0x1038E",
+        "pid": 4908,
+        "class": "ApplicationFrameWindow",
+        "title": "",
+        "affinity": "0x00000000",
+        "affinity_name": "WDA_NONE",
+        "capture_excluded": false
+      },
+      {
+        "hwnd": "0x20310",
+        "pid": 9004,
+        "class": "Windows.UI.Core.CoreWindow",
+        "title": "Microsoft Text Input Application",
+        "affinity": "0x00000000",
+        "affinity_name": "WDA_NONE",
+        "capture_excluded": false
+      },
+      {
+        "hwnd": "0x101A0",
+        "pid": 4908,
+        "class": "DummyDWMListenerWindow",
+        "title": "",
+        "affinity": "0x00000000",
+        "affinity_name": "WDA_NONE",
+        "capture_excluded": false
+      },
+      {
+        "hwnd": "0x10198",
+        "pid": 4908,
+        "class": "EdgeUiInputTopWndClass",
+        "title": "",
+        "affinity": "0x00000000",
+        "affinity_name": "WDA_NONE",
+        "capture_excluded": false
+      },
+      {
+        "hwnd": "0x10178",
+        "pid": 4908,
+        "class": "DummyDWMListenerWindow",
+        "title": "",
+        "affinity": "0x00000000",
+        "affinity_name": "WDA_NONE",
+        "capture_excluded": false
+      },
+      {
+        "hwnd": "0x10176",
+        "pid": 4908,
+        "class": "DummyDWMListenerWindow",
+        "title": "",
+        "affinity": "0x00000000",
+        "affinity_name": "WDA_NONE",
+        "capture_excluded": false
+      },
+      {
+        "hwnd": "0x30386",
+        "pid": 4128,
+        "class": "Chrome_WidgetWin_1",
+        "title": "Google Gemini - Google Chrome",
+        "affinity": "0x00000000",
+        "affinity_name": "WDA_NONE",
+        "capture_excluded": false
+      },
+      {
+        "hwnd": "0x1014E",
+        "pid": 4908,
+        "class": "Progman",
+        "title": "Program Manager",
+        "affinity": "0x00000000",
+        "affinity_name": "WDA_NONE",
+        "capture_excluded": false
+      }
+    ]
+  },
+  "process_detection": {
+    "total_processes": 176,
+    "poc_processes_found": 1,
+    "poc_processes": [
+      {
+        "pid": 9100,
+        "name": "test_minimal"
+      }
+    ],
+    "masquerading_possible": true
+  },
+  "summary": {
+    "evasion_rate": 100.0,
+    "all_rounds_pass": true,
+    "num_rounds": 5,
+    "mean_magenta_excluded": 0,
+    "mean_magenta_visible": 121604,
+    "mean_pixel_diff": 160541,
+    "mean_diff_pct": 80.2705
+  }
+}

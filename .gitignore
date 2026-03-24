@@ -21,6 +21,15 @@ venv/
 /tmp/
 *.tmp
 
+# Large capture artifacts (keep only representative samples)
+poc/windows/test_results/*_fullscreen_*.bmp
+poc/windows/test_results/round[2-9]_*.bmp
+poc/windows/test_results/20*_A_*.bmp
+poc/windows/test_results/20*_B_*.bmp
+poc/windows/test_results/20*_C_*.bmp
+poc/windows/invisible_window_verify_*.bmp
+poc/windows/test_results/*_ps_capture.png
+
 # IDE
 .vscode/
 .idea/

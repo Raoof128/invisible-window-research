@@ -10,13 +10,6 @@ mohammadraouf.abedini@students.mq.edu.au | https://raoufabedini.dev
 
 **Methodology Note** — This research was conducted using Claude Code powered by Claude Opus 4.6 (1M context) as the primary research instrument, demonstrating both the transformative potential of frontier AI for academic research and the dual-use implications central to this paper's thesis.
 
-<!-- ORIGINAL ABSTRACT: Technical Framing (for IEEE/security venues without AI safety angle) -->
-<!--
-**Abstract (Original Version)** — Remote proctoring systems have become a cornerstone of academic integrity enforcement in online education, particularly following the rapid adoption accelerated by the COVID-19 pandemic. These systems overwhelmingly rely on the WebRTC `getDisplayMedia()` API to capture and monitor a test-taker's screen in real time. This paper identifies and demonstrates a fundamental architectural vulnerability in this approach: the `getDisplayMedia()` API implicitly trusts the operating system's compositing pipeline to faithfully represent what is physically displayed on the monitor. We show that this trust assumption is violated by standard, documented OS-level APIs — specifically, Windows `SetWindowDisplayAffinity` with the `WDA_EXCLUDEFROMCAPTURE` flag and macOS `NSWindow.SharingType.none` — which allow arbitrary application windows to remain fully visible to the user while being completely invisible to any screen capture mechanism, including WebRTC. We present proof-of-concept implementations on both Windows and macOS that render an auxiliary "cheat sheet" window entirely invisible to proctoring software while remaining fully readable on the physical display. Our evaluation against representative browser-based proctoring configurations demonstrates a 100% evasion rate with zero detectable artefacts in the captured screen feed, the webcam stream, or standard behavioural telemetry. We analyse countermeasures including process enumeration, API call monitoring, and display integrity attestation, and assess their feasibility and limitations. This work follows coordinated vulnerability disclosure principles and is presented to inform the development of more robust proctoring architectures rather than to enable academic dishonesty.
-
-**Keywords (Original Version)** — display affinity, screen capture, WebRTC, getDisplayMedia, online proctoring, academic integrity, security vulnerability, responsible disclosure
--->
-
 ---
 
 ## I. Introduction
@@ -65,13 +58,9 @@ This section establishes the technical foundations required to understand the In
 
 ### A. WebRTC Screen Capture API
 
-The W3C Screen Capture specification [1] defines the `getDisplayMedia()` method on the `MediaDevices` interface, enabling web applications to capture the contents of a user's display as a `MediaStream`. The specification was designed primarily for screen sharing in video conferencing applications and was subsequently adopted by proctoring systems as a mechanism for remote screen monitoring.
+The W3C Screen Capture specification [1] defines `getDisplayMedia()`, enabling web applications to capture a user's display as a `MediaStream`. The API operates under a consent-based security model: the browser presents a system dialog for surface selection, requiring HTTPS origins and transient user activation [1].
 
-The API operates under a consent-based security model. When invoked, the browser presents a system dialog allowing the user to select which display surface to share — an entire monitor, a specific application window, or a browser tab. The specification mandates that "the user agent MUST let the end-user choose which display surface to share" and that HTTPS origins and transient user activation are required [1].
-
-Critically, the specification's security considerations focus on *authorisation* (ensuring the user consents to sharing) rather than *fidelity* (ensuring the shared content accurately represents what is displayed). Section 5 of the specification acknowledges that "display capture presents risk to the cross site request forgery protections offered by the browser sandbox" [1] but does not address the possibility that the captured pixels might not reflect the physical display state. The API delegates pixel composition entirely to the operating system's compositing pipeline [4], operating on the implicit assumption that the OS faithfully reports what is visible on the monitor.
-
-This delegation of trust is the fundamental vulnerability we exploit.
+Critically, the specification's security considerations focus on *authorisation* (ensuring user consent) rather than *fidelity* (ensuring captured content accurately represents the display). The API delegates pixel composition entirely to the OS compositing pipeline [4], implicitly assuming the OS faithfully reports what is visible on the monitor. This delegation of trust is the fundamental vulnerability we exploit.
 
 ### B. OS-Level Display Affinity
 
@@ -101,33 +90,19 @@ A significant platform divergence was expected in macOS 15 (Sequoia), where Appl
 
 ### C. Browser-Based Proctoring Architecture
 
-Browser-based proctoring systems typically implement a layered monitoring architecture [3, 7, 40]:
+Browser-based proctoring systems implement a layered monitoring architecture [3, 7, 40]:
 
-1. **Screen capture layer**: Uses `getDisplayMedia()` to obtain a real-time video stream of the test-taker's screen, which is transmitted to a remote server or analysed locally.
+1. **Screen capture**: `getDisplayMedia()` streams the test-taker's screen to a remote server.
+2. **Webcam monitoring**: `getUserMedia()` enables facial recognition, gaze estimation, and room scanning [20, 21].
+3. **Browser lockdown**: Intercepts navigation, disables shortcuts, and prevents new tabs/windows.
+4. **Behavioural analytics**: Detects gaze deviation [21], unusual mouse dynamics [25, 26, 27], and application switching [40].
+5. **Process monitoring** (native clients only): Enumerates running processes, detects VMs, and monitors system events.
 
-2. **Webcam monitoring layer**: Captures the test-taker's face and environment via `getUserMedia()`, enabling facial recognition, gaze estimation, and room scanning [20, 21].
-
-3. **Browser lockdown layer**: Restricts the test-taker's browser to the examination page by intercepting navigation events, disabling keyboard shortcuts, blocking copy/paste, and preventing new tab/window creation.
-
-4. **Behavioural analytics layer**: Analyses webcam and interaction data for suspicious patterns including gaze deviation [21], unusual mouse dynamics [25, 26, 27], and application switching [40].
-
-5. **Process monitoring layer** (native clients only): Some proctoring systems install a native agent that enumerates running processes, detects virtual machines, and monitors system-level events.
-
-The Invisible Window attack targets the first layer exclusively. Because the hidden window never appears in the `getDisplayMedia()` output, the screen capture layer reports a clean feed. The remaining layers continue to function normally: the webcam sees the student looking at their screen (which is where the hidden content is), behavioural analytics observe normal mouse and keyboard patterns (the student is interacting with content on their screen), and the browser lockdown remains intact (the hidden window is a separate native application, not a browser tab).
-
-This architectural insight — that the screen capture layer is a single point of failure independent of other monitoring layers — is central to the attack's effectiveness.
+The Invisible Window attack targets layer 1 exclusively. The hidden window never appears in `getDisplayMedia()` output, while the remaining layers function normally: the webcam sees the student looking at their screen, behavioural analytics observe normal patterns, and the browser lockdown remains intact. This architectural insight — that the screen capture layer is a single point of failure independent of other layers — is central to the attack's effectiveness.
 
 ### D. Security Requirements for Online Proctoring
 
-Luijben, van den Broek, and Alpár [17] identify five pivotal security requirements for proctoring systems:
-
-1. **Student authentication**: Verify the test-taker's identity.
-2. **Work authenticity**: Verify the test-taker's work is their own.
-3. **No prior access**: Prevent early access to exam materials.
-4. **Data protection**: Protect students' personal data.
-5. **Availability**: Ensure the exam system remains accessible.
-
-The Invisible Window attack directly violates Requirement 2 (work authenticity) by enabling the test-taker to consult unauthorised materials without detection. It does so without violating any of the other requirements — the student is authenticated, the exam data is protected, and the system remains available. This surgical violation of a single security requirement while preserving all others makes the attack particularly difficult to detect through holistic system monitoring.
+Luijben et al. [17] identify five security requirements: (1) student authentication, (2) work authenticity, (3) no prior access, (4) data protection, and (5) availability. The Invisible Window attack directly violates Requirement 2 by enabling consultation of unauthorised materials, while preserving all other requirements — making it particularly difficult to detect through holistic system monitoring.
 
 ---
 
@@ -135,21 +110,11 @@ The Invisible Window attack directly violates Requirement 2 (work authenticity) 
 
 ### A. Actors and Assumptions
 
-We define the following actors:
+- **Test-taker (Adversary)**: A student with standard (non-administrator) access to their own computer, able to run a compiled native application, but unable to modify the proctoring software, browser, or OS kernel.
 
-- **Test-taker (Adversary)**: A student taking a remotely proctored examination who wishes to consult unauthorised materials without detection. We assume the adversary has:
-  - Standard (non-administrator) user access to their own computer.
-  - The ability to compile and run a simple native application before the exam begins.
-  - Basic technical competence (can download and execute a compiled binary).
-  - No ability to modify the proctoring software itself, the browser, or the operating system kernel.
+- **Proctoring system (Defender)**: A browser-based application with access to `getDisplayMedia()` screen capture, webcam feed with gaze estimation, and behavioural analytics — but *without* kernel-level access or a native agent (the common browser-only proctoring case).
 
-- **Proctoring system (Defender)**: A browser-based proctoring application that captures the test-taker's screen via `getDisplayMedia()` and monitors their webcam feed. We assume the defender:
-  - Has access to the full `getDisplayMedia()` video stream.
-  - Has access to the webcam feed with gaze estimation capabilities.
-  - May perform behavioural analysis on mouse, keyboard, and interaction patterns.
-  - Does *not* have kernel-level access or a native agent with system-wide process monitoring (this represents the common case of browser-only proctoring).
-
-- **Operating system**: A standard installation of Windows 10/11 or macOS 12–26, running the Desktop Window Manager (Windows) or WindowServer (macOS) compositing window manager.
+- **Operating system**: A standard installation of Windows 10/11 or macOS 12–26 with standard compositing window manager.
 
 ### B. Trust Boundary Analysis
 
@@ -254,13 +219,7 @@ The attack is therefore effective on *all tested platforms*: Windows 10/11 and m
 
 ### D. Operational Considerations
 
-**Pre-exam preparation**: The adversary compiles the invisible window application and prepares the content before the exam session begins. The application can be stored on a USB drive or in a user-accessible directory.
-
-**Timing**: The application should be launched before the proctoring session begins screen capture, or during a natural pause (e.g., while reading instructions). Process creation events may be logged by sophisticated proctoring agents.
-
-**Window positioning**: The invisible window should be positioned to overlap minimally with exam interface elements that require interaction (buttons, text fields), while maximizing visibility of the cheat content. A semi-transparent or resizable window allows adjustment.
-
-**Behavioural consistency**: Because the invisible content is on the physical screen, the test-taker's gaze naturally falls on the screen, producing gaze patterns consistent with normal exam-taking behaviour. This is a critical advantage over physical cheat sheets, second monitors, or phone-based cheating, all of which produce detectable gaze deviations [20, 21].
+The adversary prepares and launches the invisible window application before the proctoring session begins screen capture. The window is positioned to overlap minimally with exam interface elements while maximising visibility of cheat content. Critically, because the invisible content is on the same physical screen, the test-taker's gaze patterns remain consistent with normal exam behaviour — a key advantage over physical cheat sheets or second monitors that produce detectable gaze deviations [20, 21].
 
 ---
 
@@ -409,36 +368,27 @@ The most practical near-term defence is a combination of (A) native agent-based 
 
 ### A. Responsible Disclosure Framework
 
-This research was conducted in accordance with established coordinated vulnerability disclosure principles [34, 35, 36, 37, 38]. The following disclosure timeline was followed:
+This research follows coordinated vulnerability disclosure principles [34, 35, 36, 37, 38] and the IEEE/ACM codes of ethics, which mandate prompt disclosure of factors endangering the public [35] and full disclosure of system limitations [34]. Our disclosure timeline:
 
 1. **Discovery and verification**: The display affinity bypass was identified and verified in a controlled laboratory environment.
 2. **Vendor notification**: Affected proctoring vendors were notified with a detailed technical report and a 90-day disclosure window.
 3. **OS vendor communication**: Microsoft and Apple were informed of the security implications of their display affinity APIs in the proctoring context.
 4. **Public disclosure**: This paper is published after the disclosure window has elapsed, allowing vendors time to develop and deploy mitigations.
 
-### B. Ethical Framing
+The APIs exploited are publicly documented and already widely shared in online evasion communities [16]; withholding this research would not prevent exploitation but would delay informed countermeasures.
 
-The decision to publicly disclose this vulnerability follows the principle that security through obscurity is not security [34]. The APIs exploited are publicly documented, the technique is straightforward, and evidence from Simko et al. [16] demonstrates that proctoring evasion techniques — including sophisticated technical methods — are already widely shared in online communities. Withholding this research would not prevent exploitation but would prevent the development of informed countermeasures.
+### B. Dual-Use Considerations
 
-We draw on the IEEE Code of Ethics [35], which mandates that members "disclose promptly factors that might endanger the public," and the ACM Code of Ethics [34], which requires "full disclosure of all pertinent system limitations and problems." The FIRST multi-party vulnerability coordination guidelines [37] inform our approach to coordinating disclosure across multiple affected vendors and OS platforms.
+We acknowledge that this paper describes a technique that could be misused. Publication is justified because:
 
-Reidsma, van der Ham, and Continella [39] provide a directly applicable framework for operationalizing cybersecurity research ethics in academic settings, including self-assessment criteria and institutional CVD procedures that we followed.
+1. **The vulnerability is inherent, not introduced**: The APIs are publicly documented; we identified and formalised the risk, not created it.
+2. **Community and commercial awareness already exists**: The technique is independently known and commercially exploited [16, 43, 44, 45, 47, 48, 49], with 35% of candidates showing signs of AI-assisted cheating [46].
+3. **Defenders need to know**: Proctoring vendors cannot develop countermeasures against a threat they do not understand.
+4. **Alternative assessment matters**: Demonstrating fundamental capture-based proctoring limitations supports the argument [10, 18, 19] for alternative assessment designs.
 
-### C. Dual-Use Considerations
+### C. Impact on Students
 
-We acknowledge that this paper describes a technique that could be misused for academic dishonesty. We argue that publication is justified because:
-
-1. **The vulnerability is inherent, not introduced**: The APIs are documented and available. We did not create the vulnerability; we identified and formalised it.
-
-2. **Community and commercial awareness already exists**: As Simko et al. [16] document, proctoring evasion techniques are shared openly on social media. Moreover, the specific display affinity technique has been independently discovered and commercially exploited by products including Interview Coder [43, 44], Cluely [45], and multiple open-source tools [47, 48, 49], with an estimated 35% of candidates showing signs of AI-assisted cheating [46]. The attack vector is already in active use; withholding formal analysis serves only to delay informed defences.
-
-3. **Defenders need to know**: Proctoring vendors cannot develop effective countermeasures against a threat they do not understand. Detailed technical analysis enables informed defence.
-
-4. **Alternative assessment matters**: Demonstrating the fundamental limitations of screen capture-based proctoring supports the academic argument [10, 18, 19] that institutions should invest in alternative assessment designs rather than an arms race with increasingly sophisticated evasion techniques.
-
-### D. Impact on Students
-
-We recognise that proctoring systems, despite their limitations, serve a role in maintaining academic integrity that benefits honest students [5, 6]. However, research consistently shows that proctoring imposes psychological costs on students — including increased anxiety and decreased performance [9] — while failing to eliminate cheating [28, 29]. The existence of fundamental bypasses like the Invisible Window underscores that proctoring creates a false sense of security while imposing real costs on test-takers [10, 30].
+While proctoring serves academic integrity [5, 6], research consistently shows it imposes psychological costs including increased anxiety and decreased performance [9, 28, 29]. Fundamental bypasses like the Invisible Window underscore that proctoring creates a false sense of security while imposing real costs on test-takers [10, 30].
 
 ---
 
@@ -446,35 +396,23 @@ We recognise that proctoring systems, despite their limitations, serve a role in
 
 ### A. Proctoring System Security
 
-The security of online proctoring systems has received increasing academic attention since the COVID-19 pandemic. Simko et al. [16] present the most directly related work, documenting community-developed evasion techniques ranging from non-technical methods (sticky notes on screens) to deeply technical approaches (custom virtual machines). Our work extends their findings by identifying a specific, OS-level mechanism that is more reliable and less detectable than the techniques they catalogued.
-
-Balash et al. [3] survey educators' perspectives on proctoring, documenting known security incidents including the ProctorU data breach (444,000 users' PII leaked) and a Proctorio vulnerability enabling remote software activation. Their companion study [7] examines students' privacy and security perceptions, establishing the adversarial dynamic between test-takers and proctoring systems.
-
-Luijben, van den Broek, and Alpár [17] formalise security requirements for proctoring systems using threat analysis methodology. Their five-requirement framework provides the basis for our analysis of which security properties the Invisible Window attack violates (Section II-D).
+Simko et al. [16] present the most directly related work, documenting community-developed evasion techniques ranging from non-technical methods to deeply technical approaches (custom virtual machines). Our work extends their findings by identifying an OS-level mechanism that is more reliable and less detectable than the techniques they catalogued. Balash et al. [3, 7] examine educator and student perspectives on proctoring security, documenting known incidents and the adversarial dynamic between test-takers and proctoring systems. Luijben et al. [17] formalise five security requirements for proctoring systems, providing the basis for our analysis in Section II-D.
 
 ### B. Proctoring Effectiveness and Criticism
 
-A substantial body of work questions the effectiveness and desirability of online proctoring. Lee and Fanguy [5] critically examine whether proctoring technologies represent educational innovation or deterioration. Khalil, Prinsloo, and Slade [10] position proctoring at the nexus of integrity and surveillance, arguing that the COVID-19 pivot amplified reliance on tools with fundamental limitations. Conijn et al. [9] demonstrate empirically that proctored exams impose negative psychological effects on students, while Duncan and Joyner [18] argue that digital proctoring may not be necessary at all.
-
-Paris, Reynolds, and McGowan [19] document privacy violations in e-learning platforms predating the pandemic. Johri and Hingle [8] describe students' technological ambivalence toward proctoring — recognising the need for integrity while resisting invasive monitoring. Mukherjee et al. [41] examine the tension between cheating detection efficacy, privacy, and fairness through visual data obfuscation in remote proctoring. Marano et al. [31] provide a scoping review of the student experience of remote proctoring.
-
-These critiques provide essential context for our work: the Invisible Window attack is significant not merely as a technical exploit, but as evidence that the fundamental architecture of screen capture-based proctoring is unsound.
+A substantial body of work questions the effectiveness and desirability of online proctoring [5, 8, 10, 18, 19, 31, 41]. Studies demonstrate that proctored exams impose negative psychological effects on students [9], that digital proctoring may not be necessary at all [18], and that privacy violations in e-learning platforms are widespread [19]. The Invisible Window attack reinforces these critiques: the fundamental architecture of screen capture-based proctoring is unsound.
 
 ### C. Behavioural Detection Methods
 
-Research on behavioural cheating detection includes eye gaze tracking [20, 21], mouse dynamics [22, 24, 25, 26, 27], keystroke analysis [26, 27], and multimodal fusion approaches [23, 40]. Kaddoura et al. [20] provide a systematic review of computational intelligence approaches to cheating detection, covering face recognition, head posture analysis, gaze tracking, and network analysis. Ferdosi et al. [21] demonstrate automated behavioural pattern classification using MediaPipe, achieving 87.5% cheating detection accuracy.
-
-Our evaluation (Section V) demonstrates that these behavioural detection mechanisms are largely ineffective against the Invisible Window attack because the test-taker's physical behaviour (gaze direction, posture, screen attention) is indistinguishable from legitimate exam behaviour.
+Behavioural cheating detection research spans eye gaze tracking [20, 21], mouse dynamics [22, 24, 25, 26, 27], keystroke analysis [26, 27], and multimodal fusion [23, 40]. Our evaluation (Section V) demonstrates that these mechanisms are largely ineffective against the Invisible Window attack because the test-taker's physical behaviour is indistinguishable from legitimate exam behaviour.
 
 ### D. Threat Modeling Across Platforms
 
-Das Chowdhury et al. [2] demonstrate that threat models often fail to adapt when systems move across platforms — a finding directly analogous to the proctoring context, where browser-based systems assume that the OS display pipeline is trustworthy without verifying this assumption. Their STRIDE/LINDDUN framework for analyzing cross-platform threat model drift informs our analysis of the trust boundary between the browser and the OS compositing layer.
+Das Chowdhury et al. [2] demonstrate that threat models often fail to adapt when systems move across platforms, directly analogous to proctoring systems that assume a trustworthy OS display pipeline. Their STRIDE/LINDDUN framework for cross-platform threat model drift informs our trust boundary analysis.
 
 ### E. Vulnerability Disclosure in Educational Technology
 
-Mehrishi, Sarmah, and Daneva [32] identify security gaps in Canvas LMS, Moodle, and Google Forms, demonstrating that vulnerability surfaces in educational technology extend beyond proctoring software. Adkins and Joyner [42] examine the challenges of scaling anti-plagiarism detection in large online computer science classes. Lachheb et al. [33] argue that maintaining student privacy in educational technology is a matter of design ethics, not merely policy compliance.
-
-Noordegraaf and Weulen Kranenbarg [6] study the motivations of ethical hackers, finding that "reporting vulnerabilities as a moral duty" is a primary driver — a perspective that directly informs our responsible disclosure approach. Reidsma, van der Ham, and Continella [39] provide an operational framework for cybersecurity research ethics that we follow.
+Security gaps in educational technology extend beyond proctoring to LMS platforms and anti-plagiarism systems [32, 33, 42]. Noordegraaf and Weulen Kranenbarg [6] find that "reporting vulnerabilities as a moral duty" is a primary driver for ethical hackers, a perspective that informs our disclosure approach alongside the operational framework of Reidsma et al. [39].
 
 ### F. Commercial Exploitation and In-the-Wild Awareness
 

@@ -188,7 +188,7 @@ This is a stronger result than the paper originally claimed. The paper should be
 | `invisible_window` | Compiled binary (85,056 bytes) |
 | `build.sh` | Build script |
 | `capture_verify.py` | Automated verification script |
-| `comprehensive_test.py` | 22-subtest validation suite |
+| `comprehensive_test.py` | 16-subtest validation suite |
 | `/tmp/invisible_window_eval/full_retest/` | All captures from this test session |
 | `├── BASELINE_no_window.png` | Full-screen without invisible window |
 | `├── TEST_with_window.png` | Full-screen with invisible window |

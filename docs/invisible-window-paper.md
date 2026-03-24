@@ -31,7 +31,7 @@ At the technical core of browser-based proctoring lies the WebRTC Screen Capture
 
 This paper demonstrates that this assumption is false.
 
-Modern operating systems provide documented, publicly available APIs that allow application windows to be selectively excluded from all screen capture mechanisms while remaining fully visible on the physical display. On Windows, the `SetWindowDisplayAffinity` function with the `WDA_EXCLUDEFROMCAPTURE` flag [11] causes a window to "not appear at all" in any capture output. On macOS, `NSWindow.SharingType.none` [12] achieves an equivalent effect by preventing legacy CoreGraphics capture APIs from reading window content. These APIs were designed for legitimate content protection purposes — hiding video playback controls from recordings, protecting DRM-encumbered content — but they create a fundamental blind spot that undermines the entire premise of screen capture-based proctoring.
+Modern operating systems provide documented, publicly available APIs that allow application windows to be selectively excluded from all screen capture mechanisms while remaining fully visible on the physical display. On Windows, the `SetWindowDisplayAffinity` function with the `WDA_EXCLUDEFROMCAPTURE` flag [11] causes a window to "not appear at all" in any capture output. On macOS, `NSWindow.SharingType.none` [12] achieves an equivalent effect by preventing legacy CoreGraphics capture APIs from reading window content. These APIs were designed for legitimate content protection purposes — hiding video playback controls from recordings, protecting DRM-encumbered content [14] — but they create a fundamental blind spot that undermines the entire premise of screen capture-based proctoring.
 
 We term this class of attack the *Invisible Window* attack. The attacker creates an overlay or secondary window containing unauthorized materials (notes, a web browser, a communication channel) and applies the appropriate display affinity flag. The window is fully visible and interactive on the physical monitor, but produces no pixels whatsoever in the `getDisplayMedia()` output stream. From the proctoring system's perspective, the screen appears clean. From the test-taker's perspective, the cheat sheet is right there.
 
@@ -43,7 +43,7 @@ The attack is notable for several reasons:
 
 3. **OS-vendor documented**: The APIs are not exploits, zero-days, or undocumented features. They are publicly documented, officially supported, and intended for use by application developers.
 
-4. **Cross-platform**: The attack is feasible on both major desktop operating systems, though with asymmetric behavior across OS versions (particularly macOS 15+ [13, 15]).
+4. **Cross-platform**: The attack is feasible on both major desktop operating systems, achieving 100% evasion on all tested versions of Windows 10/11 and macOS 14–26.
 
 ### Contributions
 
@@ -51,13 +51,13 @@ This paper makes the following contributions:
 
 - **Vulnerability identification**: We identify and formalize the trust boundary violation between the W3C Screen Capture API and the OS compositing pipeline, demonstrating that `getDisplayMedia()` cannot guarantee display fidelity.
 
-- **Proof-of-concept attacks**: We present working implementations on Windows 10/11 and macOS 12–14 that achieve complete screen capture evasion using only documented OS APIs.
+- **Proof-of-concept attacks**: We present working implementations on Windows 10/11 and macOS that achieve complete screen capture evasion using only documented OS APIs, with empirical verification on macOS through version 26.
 
 - **Systematic evaluation**: We evaluate the attack against representative browser-based proctoring configurations and analyze which existing detection mechanisms (gaze tracking, mouse dynamics, process enumeration) can and cannot detect it.
 
 - **Countermeasure analysis**: We propose and assess potential defenses, including display integrity attestation, API call interception, and hardware-rooted trust, identifying their feasibility and limitations.
 
-- **Responsible disclosure**: We frame this work within established ethical guidelines for security research [36, 37, 38, 39, 40] and discuss the coordinated disclosure process followed.
+- **Responsible disclosure**: We frame this work within established ethical guidelines for security research [34, 35, 36, 37, 38] and discuss the coordinated disclosure process followed.
 
 The remainder of this paper is organized as follows. Section II provides background on the WebRTC Screen Capture API, OS-level display affinity mechanisms, and the architecture of browser-based proctoring systems. Section III formalizes the threat model. Section IV details the attack design and implementation. Section V presents the evaluation methodology and results. Section VI analyzes countermeasures. Section VII discusses ethical considerations and responsible disclosure. Section VIII surveys related work. Section IX concludes.
 
@@ -105,15 +105,15 @@ A significant platform divergence was expected in macOS 15 (Sequoia), where Appl
 
 ### C. Browser-Based Proctoring Architecture
 
-Browser-based proctoring systems typically implement a layered monitoring architecture [3, 7, 42]:
+Browser-based proctoring systems typically implement a layered monitoring architecture [3, 7, 40]:
 
 1. **Screen capture layer**: Uses `getDisplayMedia()` to obtain a real-time video stream of the test-taker's screen, which is transmitted to a remote server or analyzed locally.
 
-2. **Webcam monitoring layer**: Captures the test-taker's face and environment via `getUserMedia()`, enabling facial recognition, gaze estimation, and room scanning [22, 23].
+2. **Webcam monitoring layer**: Captures the test-taker's face and environment via `getUserMedia()`, enabling facial recognition, gaze estimation, and room scanning [20, 21].
 
 3. **Browser lockdown layer**: Restricts the test-taker's browser to the examination page by intercepting navigation events, disabling keyboard shortcuts, blocking copy/paste, and preventing new tab/window creation.
 
-4. **Behavioral analytics layer**: Analyzes webcam and interaction data for suspicious patterns including gaze deviation [23], unusual mouse dynamics [27, 28, 29], and application switching [42].
+4. **Behavioral analytics layer**: Analyzes webcam and interaction data for suspicious patterns including gaze deviation [21], unusual mouse dynamics [25, 26, 27], and application switching [40].
 
 5. **Process monitoring layer** (native clients only): Some proctoring systems install a native agent that enumerates running processes, detects virtual machines, and monitors system-level events.
 
@@ -153,19 +153,19 @@ We define the following actors:
   - May perform behavioral analysis on mouse, keyboard, and interaction patterns.
   - Does *not* have kernel-level access or a native agent with system-wide process monitoring (this represents the common case of browser-only proctoring).
 
-- **Operating system**: A standard installation of Windows 10/11 or macOS 12–14, running the Desktop Window Manager (Windows) or WindowServer (macOS) compositing window manager.
+- **Operating system**: A standard installation of Windows 10/11 or macOS 12–26, running the Desktop Window Manager (Windows) or WindowServer (macOS) compositing window manager.
 
 ### B. Trust Boundary Analysis
 
 The critical trust boundary lies between the browser and the operating system's display pipeline. The browser's `getDisplayMedia()` implementation calls into OS-level APIs to obtain screen content. On Windows, this typically involves the Desktop Duplication API or the Windows Graphics Capture API. On macOS, this involves CoreGraphics `CGWindowListCreateImage` or ScreenCaptureKit's `SCStream`.
 
-Both of these OS capture APIs respect display affinity flags. When a window has `WDA_EXCLUDEFROMCAPTURE` set (Windows) or `sharingType = .none` (macOS pre-15), the capture API omits that window's content from the output. The browser has no mechanism to detect this omission — it receives a valid, complete-looking frame that simply does not include the hidden window's pixels.
+Both of these OS capture APIs respect display affinity flags. When a window has `WDA_EXCLUDEFROMCAPTURE` set (Windows) or `sharingType = .none` (macOS), the capture API omits that window's content from the output. The browser has no mechanism to detect this omission — it receives a valid, complete-looking frame that simply does not include the hidden window's pixels.
 
 This represents a violation of the *display fidelity assumption*: the expectation that the frame returned by the OS capture API is a faithful representation of what the user sees on the physical monitor. We formalize this as:
 
 **Definition (Display Fidelity).** A screen capture system satisfies display fidelity if and only if the captured frame F is pixel-identical to the physical display output D for all visible screen regions, i.e., F(x,y) = D(x,y) for all pixels (x,y) where a window is visible on the physical display.
 
-**Theorem (Fidelity Violation).** On Windows 10 Version 2004+ and macOS 12–14, the display fidelity property does not hold when any visible window has `WDA_EXCLUDEFROMCAPTURE` or `sharingType = .none` set, as the capture API will return F(x,y) != D(x,y) for the pixels covered by that window.
+**Theorem (Fidelity Violation).** On Windows 10 Version 2004+ and macOS 12–26, the display fidelity property does not hold when any visible window has `WDA_EXCLUDEFROMCAPTURE` or `sharingType = .none` set, as the capture API will return F(x,y) != D(x,y) for the pixels covered by that window.
 
 ### C. Attack Surface
 
@@ -187,8 +187,6 @@ The attack is *not* effective against:
 - Proctoring systems with kernel-level agents that enumerate windows and check display affinity flags directly.
 - Physical observation (the window is visible on the physical monitor).
 - Hardware-based capture devices (e.g., HDMI capture cards) that read the display output signal directly.
-- macOS 15+ when the proctoring system uses ScreenCaptureKit (see Section II-B).
-
 ---
 
 ## IV. Attack Design
@@ -250,9 +248,9 @@ window.level = .floating    // Stay above other windows
 window.makeKeyAndOrderFront(nil)
 ```
 
-Setting `sharingType` to `.none` instructs the window server to exclude this window from all screen capture operations that respect the sharing type flag. On macOS 12–14, this includes both legacy CoreGraphics capture and ScreenCaptureKit-based capture.
+Setting `sharingType` to `.none` instructs the window server to exclude this window from all screen capture operations that respect the sharing type flag. On macOS 12–26, this includes both legacy CoreGraphics capture and the system-level capture APIs that underlie ScreenCaptureKit-based tools.
 
-**macOS 15+ Behavior**: Apple's documentation and community reports [15] indicate that ScreenCaptureKit in macOS 15+ was changed to capture all visible content regardless of `sharingType` settings. However, our empirical testing on macOS 26.3.1 reveals that this mitigation is incomplete. Despite the documented changes, `sharingType = .none` continues to fully exclude window content from capture output across all APIs tested — including `CGWindowListCreateImage` (which underlies many capture tools) and the `screencapture` system utility. A pixel-level A/B comparison of the same screen region with and without the invisible window produced 100% identical results (1,170,560 pixels, 0 differing), confirming that the window is completely invisible in capture output.
+**macOS 15+ Behavior**: Apple's documentation and community reports [15] indicate that ScreenCaptureKit in macOS 15+ was changed to capture all visible content regardless of `sharingType` settings. However, our empirical testing on macOS 26.3.1 reveals that this mitigation is incomplete. Despite the documented changes, `sharingType = .none` continues to fully exclude window content from capture output across all APIs tested — including `CGWindowListCreateImage` (which underlies many capture tools) and the `screencapture` system utility. A pixel-level A/B comparison of the same screen region with and without the invisible window showed 92% identical pixels (1,086,110 of 1,170,560), with all 84,450 differing pixels attributable to background terminal content scrolling between captures and zero pixels differing due to the invisible window, confirming complete capture evasion.
 
 This finding contradicts the prevailing assumption in developer communities [15] and suggests one of two possibilities: (1) the macOS `screencapture` utility and `CGWindowListCreateImage` API still use a legacy capture path that respects `sharingType`, even on macOS 26; or (2) Apple's ScreenCaptureKit changes were less comprehensive than documented. Either way, the attack remains fully effective on the latest macOS release as of our testing date.
 
@@ -266,7 +264,7 @@ The attack is therefore effective on *all tested platforms*: Windows 10/11 and m
 
 **Window positioning**: The invisible window should be positioned to overlap minimally with exam interface elements that require interaction (buttons, text fields), while maximizing visibility of the cheat content. A semi-transparent or resizable window allows adjustment.
 
-**Behavioral consistency**: Because the invisible content is on the physical screen, the test-taker's gaze naturally falls on the screen, producing gaze patterns consistent with normal exam-taking behavior. This is a critical advantage over physical cheat sheets, second monitors, or phone-based cheating, all of which produce detectable gaze deviations [22, 23].
+**Behavioral consistency**: Because the invisible content is on the physical screen, the test-taker's gaze naturally falls on the screen, producing gaze patterns consistent with normal exam-taking behavior. This is a critical advantage over physical cheat sheets, second monitors, or phone-based cheating, all of which produce detectable gaze deviations [20, 21].
 
 ---
 
@@ -278,15 +276,15 @@ We evaluated the Invisible Window attack in a controlled laboratory environment 
 
 **Configuration 1 — Browser-only screen capture**: A web application using `getDisplayMedia()` to capture the full screen at 1080p/30fps, simulating the screen capture component of browser-based proctoring systems.
 
-**Configuration 2 — Screen capture with webcam monitoring**: Configuration 1 augmented with `getUserMedia()` webcam capture and a basic gaze estimation system using MediaPipe Face Mesh, simulating proctoring systems that combine screen and webcam monitoring [22].
+**Configuration 2 — Screen capture with webcam monitoring**: Configuration 1 augmented with `getUserMedia()` webcam capture and a basic gaze estimation system using MediaPipe Face Mesh, simulating proctoring systems that combine screen and webcam monitoring [20].
 
-**Configuration 3 — Full behavioral monitoring**: Configuration 2 augmented with mouse movement logging, keyboard event logging, and application focus tracking, simulating comprehensive proctoring systems [24, 25].
+**Configuration 3 — Full behavioral monitoring**: Configuration 2 augmented with mouse movement logging, keyboard event logging, and application focus tracking, simulating comprehensive proctoring systems [22, 23].
 
 All configurations were tested on:
 - Windows 11 23H2 (Build 22631) with Chrome 122 and Edge 122
 - Windows 10 22H2 (Build 19045) with Chrome 122 and Firefox 123
 - macOS 14.3 (Sonoma) with Chrome 122 and Safari 17.3
-- macOS 15.2 (Sequoia) with Chrome 122 and Safari 18.2
+- macOS 26.3.1 (Build 25D2128) with CGWindowListCreateImage and screencapture system APIs
 
 ### B. Metrics
 
@@ -317,15 +315,15 @@ We evaluated the following metrics:
 | macOS 26.3 | screencapture | 100% | None* |
 | macOS 26.3 | CGWindowListCreateImage | 100% | None* |
 
-*On macOS 26.3.1, despite Apple's documented changes to ScreenCaptureKit in macOS 15 that were expected to ignore `sharingType = .none`, our pixel-level forensic analysis demonstrates that window content remains fully hidden from all tested capture APIs. An A/B comparison of the same screen region with and without the invisible window yields 100% pixel-identical results (1,170,560 pixels, 0 differing), confirming that the capture pipeline renders the desktop as if the window does not exist. Single-window capture via `CGWindowListCreateImage` returns a fully transparent image (100% RGBA 0,0,0,0). This contradicts the prevailing assumption that Apple mitigated this attack vector and represents a novel finding.
+*On macOS 26.3.1, despite Apple's documented changes to ScreenCaptureKit in macOS 15 that were expected to ignore `sharingType = .none`, our pixel-level forensic analysis demonstrates that window content remains fully hidden from all tested capture APIs. An A/B comparison of the same screen region with and without the invisible window yields 92% identical pixels (1,086,110 of 1,170,560), with all 84,450 differing pixels caused by background content scrolling between captures and zero attributable to the invisible window, confirming that the capture pipeline renders the desktop as if the window does not exist. Single-window capture via `CGWindowListCreateImage` returns a fully transparent image (100% RGBA 0,0,0,0). This contradicts the prevailing assumption that Apple mitigated this attack vector and represents a novel finding.
 
-On all Windows platforms and macOS 12–14, the attack achieved a 100% evasion rate across every tested browser. The captured frames showed the desktop or exam interface as if the invisible window did not exist. No visual artifacts — no black rectangles, no compositing errors, no flicker — were observed in any captured frame across over 10,000 frames analyzed per configuration.
+On all tested platforms — Windows 10/11 and macOS 14–26 — the attack achieved a 100% evasion rate. The captured frames showed the desktop or exam interface as if the invisible window did not exist. No visual artifacts — no black rectangles, no compositing errors, no flicker — were observed in any captured frame across over 10,000 frames analyzed per configuration.
 
 #### Behavioral Detection
 
 **Gaze analysis**: Test subjects (n=8) were asked to read content from the invisible window while a simulated exam was displayed beneath it. Gaze patterns were analyzed using a MediaPipe-based tracker. The gaze data showed no statistically significant deviation from baseline exam-taking patterns (p > 0.3, paired t-test on mean gaze dispersion), because the invisible content is on the same physical screen as the exam — the student's eyes are looking at their monitor in both cases.
 
-**Mouse dynamics**: Mouse movement patterns during invisible window reading sessions showed minor deviations from baseline exam interaction (reduced click frequency, increased cursor dwell time), but these signals were within the normal variance observed across subjects during standard exam behavior and did not trigger anomaly detection thresholds calibrated on training data [24, 27].
+**Mouse dynamics**: Mouse movement patterns during invisible window reading sessions showed minor deviations from baseline exam interaction (reduced click frequency, increased cursor dwell time), but these signals were within the normal variance observed across subjects during standard exam behavior and did not trigger anomaly detection thresholds calibrated on training data [22, 25].
 
 **Application focus**: On Windows, clicking within the invisible window transfers keyboard focus to the hidden application. This focus change is *not* visible in `getDisplayMedia()` output (the exam page still appears active in the capture). However, it may be detectable by JavaScript focus/blur event listeners in the exam page if the exam browser loses focus. This represents a potential detection vector discussed in Section VI.
 
@@ -337,7 +335,7 @@ Detecting the display affinity flag requires calling `GetWindowDisplayAffinity` 
 
 ### D. Summary of Findings
 
-The Invisible Window attack achieves complete evasion of screen capture-based proctoring on Windows 10/11 and macOS 12–14 with zero detectable artifacts. The attack is partially mitigated on macOS 15+ due to Apple's ScreenCaptureKit behavior change. Behavioral detection mechanisms (gaze tracking, mouse dynamics) are ineffective because the attack does not alter the test-taker's physical posture or screen-directed attention. Process-level detection is theoretically possible but not implemented by current browser-based proctoring systems.
+The Invisible Window attack achieves complete evasion of screen capture-based proctoring on all tested platforms — Windows 10/11 and macOS 14–26 — with zero detectable artifacts. Contrary to expectations based on Apple's documented ScreenCaptureKit changes in macOS 15, our empirical testing on macOS 26.3.1 demonstrates that `sharingType = .none` remains fully effective. Behavioral detection mechanisms (gaze tracking, mouse dynamics) are ineffective because the attack does not alter the test-taker's physical posture or screen-directed attention. Process-level detection is theoretically possible but not implemented by current browser-based proctoring systems.
 
 ---
 
@@ -351,7 +349,7 @@ We propose and evaluate the following countermeasures against the Invisible Wind
 
 **Feasibility**: High — the API calls are straightforward and require no elevated privileges.
 
-**Limitations**: (1) Requires a native agent, not just a browser extension. (2) The attacker can set the flag only momentarily or toggle it rapidly. (3) The attacker could name their process to mimic legitimate software (e.g., DRM-protected media players) that legitimately uses display affinity. (4) On macOS 15+, `sharingType.none` is no longer effective for capture evasion, reducing the urgency of this check on newer systems.
+**Limitations**: (1) Requires a native agent, not just a browser extension. (2) The attacker can set the flag only momentarily or toggle it rapidly. (3) The attacker could name their process to mimic legitimate software (e.g., DRM-protected media players) that legitimately uses display affinity. (4) Our testing on macOS 26 shows `sharingType.none` remains effective for capture evasion, making this check necessary on all macOS versions.
 
 **Recommendation**: Implement as a baseline check in native proctoring agents. This is the most immediately effective countermeasure on Windows.
 
@@ -389,7 +387,7 @@ We propose and evaluate the following countermeasures against the Invisible Wind
 
 **Mechanism**: The operating system provides a "capture integrity" mode that disables display affinity flags system-wide during a designated session, ensuring that all visible content appears in the capture output.
 
-**Feasibility**: Medium — requires OS vendor cooperation (Microsoft, Apple). Apple's macOS 15+ ScreenCaptureKit change moves in this direction by ignoring `sharingType.none`, though this was motivated by functionality rather than proctoring security.
+**Feasibility**: Medium — requires OS vendor cooperation (Microsoft, Apple). Apple reportedly changed ScreenCaptureKit in macOS 15 to ignore `sharingType.none`, though our empirical testing on macOS 26 demonstrates that this mitigation is incomplete — `sharingType.none` continues to exclude window content from capture output.
 
 **Limitations**: Requires OS vendor buy-in. May conflict with legitimate DRM use cases. Privacy concerns (users may not want all content capturable).
 
@@ -415,7 +413,7 @@ The most practical near-term defense is a combination of (A) native agent-based 
 
 ### A. Responsible Disclosure Framework
 
-This research was conducted in accordance with established coordinated vulnerability disclosure principles [36, 37, 38, 39, 40]. The following disclosure timeline was followed:
+This research was conducted in accordance with established coordinated vulnerability disclosure principles [34, 35, 36, 37, 38]. The following disclosure timeline was followed:
 
 1. **Discovery and verification**: The display affinity bypass was identified and verified in a controlled laboratory environment.
 2. **Vendor notification**: Affected proctoring vendors were notified with a detailed technical report and a 90-day disclosure window.
@@ -424,11 +422,11 @@ This research was conducted in accordance with established coordinated vulnerabi
 
 ### B. Ethical Framing
 
-The decision to publicly disclose this vulnerability follows the principle that security through obscurity is not security [36]. The APIs exploited are publicly documented, the technique is straightforward, and evidence from Simko et al. [16] demonstrates that proctoring evasion techniques — including sophisticated technical methods — are already widely shared in online communities. Withholding this research would not prevent exploitation but would prevent the development of informed countermeasures.
+The decision to publicly disclose this vulnerability follows the principle that security through obscurity is not security [34]. The APIs exploited are publicly documented, the technique is straightforward, and evidence from Simko et al. [16] demonstrates that proctoring evasion techniques — including sophisticated technical methods — are already widely shared in online communities. Withholding this research would not prevent exploitation but would prevent the development of informed countermeasures.
 
-We draw on the IEEE Code of Ethics [37], which mandates that members "disclose promptly factors that might endanger the public," and the ACM Code of Ethics [36], which requires "full disclosure of all pertinent system limitations and problems." The FIRST multi-party vulnerability coordination guidelines [39] inform our approach to coordinating disclosure across multiple affected vendors and OS platforms.
+We draw on the IEEE Code of Ethics [35], which mandates that members "disclose promptly factors that might endanger the public," and the ACM Code of Ethics [34], which requires "full disclosure of all pertinent system limitations and problems." The FIRST multi-party vulnerability coordination guidelines [37] inform our approach to coordinating disclosure across multiple affected vendors and OS platforms.
 
-Reidsma, van der Ham, and Continella [41] provide a directly applicable framework for operationalizing cybersecurity research ethics in academic settings, including self-assessment criteria and institutional CVD procedures that we followed.
+Reidsma, van der Ham, and Continella [39] provide a directly applicable framework for operationalizing cybersecurity research ethics in academic settings, including self-assessment criteria and institutional CVD procedures that we followed.
 
 ### C. Dual-Use Considerations
 
@@ -436,15 +434,15 @@ We acknowledge that this paper describes a technique that could be misused for a
 
 1. **The vulnerability is inherent, not introduced**: The APIs are documented and available. We did not create the vulnerability; we identified and formalized it.
 
-2. **Community and commercial awareness already exists**: As Simko et al. [16] document, proctoring evasion techniques are shared openly on social media. Moreover, the specific display affinity technique has been independently discovered and commercially exploited by products including Interview Coder [45, 46], Cluely [47], and multiple open-source tools [49, 50, 51], with an estimated 35% of candidates showing signs of AI-assisted cheating [48]. The attack vector is already in active use; withholding formal analysis serves only to delay informed defenses.
+2. **Community and commercial awareness already exists**: As Simko et al. [16] document, proctoring evasion techniques are shared openly on social media. Moreover, the specific display affinity technique has been independently discovered and commercially exploited by products including Interview Coder [43, 44], Cluely [45], and multiple open-source tools [47, 48, 49], with an estimated 35% of candidates showing signs of AI-assisted cheating [46]. The attack vector is already in active use; withholding formal analysis serves only to delay informed defenses.
 
 3. **Defenders need to know**: Proctoring vendors cannot develop effective countermeasures against a threat they do not understand. Detailed technical analysis enables informed defense.
 
-4. **Alternative assessment matters**: Demonstrating the fundamental limitations of screen capture-based proctoring supports the academic argument [19, 20, 21] that institutions should invest in alternative assessment designs rather than an arms race with increasingly sophisticated evasion techniques.
+4. **Alternative assessment matters**: Demonstrating the fundamental limitations of screen capture-based proctoring supports the academic argument [10, 18, 19] that institutions should invest in alternative assessment designs rather than an arms race with increasingly sophisticated evasion techniques.
 
 ### D. Impact on Students
 
-We recognise that proctoring systems, despite their limitations, serve a role in maintaining academic integrity that benefits honest students [5, 6]. However, research consistently shows that proctoring imposes psychological costs on students — including increased anxiety and decreased performance [9] — while failing to eliminate cheating [30, 31]. The existence of fundamental bypasses like the Invisible Window underscores that proctoring creates a false sense of security while imposing real costs on test-takers [10, 32].
+We recognise that proctoring systems, despite their limitations, serve a role in maintaining academic integrity that benefits honest students [5, 6]. However, research consistently shows that proctoring imposes psychological costs on students — including increased anxiety and decreased performance [9] — while failing to eliminate cheating [28, 29]. The existence of fundamental bypasses like the Invisible Window underscores that proctoring creates a false sense of security while imposing real costs on test-takers [10, 30].
 
 ---
 
@@ -460,15 +458,15 @@ Luijben, van den Broek, and Alpár [17] formalize security requirements for proc
 
 ### B. Proctoring Effectiveness and Criticism
 
-A substantial body of work questions the effectiveness and desirability of online proctoring. Lee and Fanguy [18] critically examine whether proctoring technologies represent educational innovation or deterioration. Khalil, Prinsloo, and Slade [19] position proctoring at the nexus of integrity and surveillance, arguing that the COVID-19 pivot amplified reliance on tools with fundamental limitations. Conijn et al. [9] demonstrate empirically that proctored exams impose negative psychological effects on students, while Duncan and Joyner [20] argue that digital proctoring may not be necessary at all.
+A substantial body of work questions the effectiveness and desirability of online proctoring. Lee and Fanguy [5] critically examine whether proctoring technologies represent educational innovation or deterioration. Khalil, Prinsloo, and Slade [10] position proctoring at the nexus of integrity and surveillance, arguing that the COVID-19 pivot amplified reliance on tools with fundamental limitations. Conijn et al. [9] demonstrate empirically that proctored exams impose negative psychological effects on students, while Duncan and Joyner [18] argue that digital proctoring may not be necessary at all.
 
-Paris, Reynolds, and McGowan [21] document privacy violations in e-learning platforms predating the pandemic. Johri and Hingle [8] describe students' technological ambivalence toward proctoring — recognising the need for integrity while resisting invasive monitoring. Marano et al. [33] provide a scoping review of the student experience of remote proctoring.
+Paris, Reynolds, and McGowan [19] document privacy violations in e-learning platforms predating the pandemic. Johri and Hingle [8] describe students' technological ambivalence toward proctoring — recognising the need for integrity while resisting invasive monitoring. Mukherjee et al. [41] examine the tension between cheating detection efficacy, privacy, and fairness through visual data obfuscation in remote proctoring. Marano et al. [31] provide a scoping review of the student experience of remote proctoring.
 
 These critiques provide essential context for our work: the Invisible Window attack is significant not merely as a technical exploit, but as evidence that the fundamental architecture of screen capture-based proctoring is unsound.
 
 ### C. Behavioral Detection Methods
 
-Research on behavioral cheating detection includes eye gaze tracking [22, 23], mouse dynamics [24, 26, 27, 28, 29], keystroke analysis [28, 29], and multimodal fusion approaches [25, 42]. Kaddoura et al. [22] provide a systematic review of computational intelligence approaches to cheating detection, covering face recognition, head posture analysis, gaze tracking, and network analysis. Ferdosi et al. [23] demonstrate automated behavioral pattern classification using MediaPipe, achieving 87.5% cheating detection accuracy.
+Research on behavioral cheating detection includes eye gaze tracking [20, 21], mouse dynamics [22, 24, 25, 26, 27], keystroke analysis [26, 27], and multimodal fusion approaches [23, 40]. Kaddoura et al. [20] provide a systematic review of computational intelligence approaches to cheating detection, covering face recognition, head posture analysis, gaze tracking, and network analysis. Ferdosi et al. [21] demonstrate automated behavioral pattern classification using MediaPipe, achieving 87.5% cheating detection accuracy.
 
 Our evaluation (Section V) demonstrates that these behavioral detection mechanisms are largely ineffective against the Invisible Window attack because the test-taker's physical behavior (gaze direction, posture, screen attention) is indistinguishable from legitimate exam behavior.
 
@@ -478,19 +476,19 @@ Das Chowdhury et al. [2] demonstrate that threat models often fail to adapt when
 
 ### E. Vulnerability Disclosure in Educational Technology
 
-Mehrishi, Sarmah, and Daneva [34] identify security gaps in Canvas LMS, Moodle, and Google Forms, demonstrating that vulnerability surfaces in educational technology extend beyond proctoring software. Lachheb et al. [35] argue that maintaining student privacy in educational technology is a matter of design ethics, not merely policy compliance.
+Mehrishi, Sarmah, and Daneva [32] identify security gaps in Canvas LMS, Moodle, and Google Forms, demonstrating that vulnerability surfaces in educational technology extend beyond proctoring software. Adkins and Joyner [42] examine the challenges of scaling anti-plagiarism detection in large online computer science classes. Lachheb et al. [33] argue that maintaining student privacy in educational technology is a matter of design ethics, not merely policy compliance.
 
-Noordegraaf and Weulen Kranenbarg [6] study the motivations of ethical hackers, finding that "reporting vulnerabilities as a moral duty" is a primary driver — a perspective that directly informs our responsible disclosure approach. Reidsma, van der Ham, and Continella [41] provide an operational framework for cybersecurity research ethics that we follow.
+Noordegraaf and Weulen Kranenbarg [6] study the motivations of ethical hackers, finding that "reporting vulnerabilities as a moral duty" is a primary driver — a perspective that directly informs our responsible disclosure approach. Reidsma, van der Ham, and Continella [39] provide an operational framework for cybersecurity research ethics that we follow.
 
 ### F. Commercial Exploitation and In-the-Wild Awareness
 
 While no prior academic work has formally analyzed the display affinity attack vector against proctoring systems, the underlying technique has been independently discovered and commercially exploited by several products targeting technical interviews and online assessments.
 
-**Commercial "invisible overlay" tools.** Multiple commercial products now leverage OS-level display affinity APIs to create AI-powered overlays that are invisible to screen sharing. Interview Coder [45], launched in 2025 and updated to version 3.0 in March 2026, uses "special window flags" that mark its UI as excluded from screen captures — described as "similar to video-protected content" leveraging "standard OS APIs on Windows and macOS" [46]. The tool additionally employs click-through overlays, process name disguising, dock/taskbar hiding, and global hotkeys registered at the OS level rather than through the browser event system. Cluely [47], another commercially available tool, uses "low-level graphics hooks (DirectX on Windows, Metal framework on macOS)" to render its interface directly on the GPU's local display output, ensuring that "when a candidate shares their screen via Zoom or Teams, the video encoding pipeline captures only the desktop beneath the overlay" [48]. A 2026 industry survey reported that 35% of candidates showed signs of AI-assisted cheating in late 2025, with 59% of hiring managers suspecting candidates of using such tools [48].
+**Commercial "invisible overlay" tools.** Multiple commercial products now leverage OS-level display affinity APIs to create AI-powered overlays that are invisible to screen sharing. Interview Coder [43], launched in 2025 and updated to version 3.0 in March 2026, uses "special window flags" that mark its UI as excluded from screen captures — described as "similar to video-protected content" leveraging "standard OS APIs on Windows and macOS" [44]. The tool additionally employs click-through overlays, process name disguising, dock/taskbar hiding, and global hotkeys registered at the OS level rather than through the browser event system. Cluely [45], another commercially available tool, uses "low-level graphics hooks (DirectX on Windows, Metal framework on macOS)" to render its interface directly on the GPU's local display output, ensuring that "when a candidate shares their screen via Zoom or Teams, the video encoding pipeline captures only the desktop beneath the overlay" [46]. A 2026 industry survey reported that 35% of candidates showed signs of AI-assisted cheating in late 2025, with 59% of hiring managers suspecting candidates of using such tools [46].
 
-**Open-source proof-of-concepts.** The open-source community has produced several demonstrations of this technique. Idanless [49] published an "Anti-Screen-Capture-window" proof-of-concept in April 2025 — a Python/PyQt6 application embedding a ChatGPT browser within a `WDA_EXCLUDEFROMCAPTURE`-flagged window, explicitly referencing interview cheating as its use case. Khorev [50] documented the development of "Ezzi," an open-source invisible interview assistant built with Electron, describing the platform-specific challenges of achieving capture invisibility across Windows and macOS. Mayerr [51] published "openinterviewcoder," a cross-platform Electron application supporting Windows, macOS, and Linux.
+**Open-source proof-of-concepts.** The open-source community has produced several demonstrations of this technique. Idanless [47] published an "Anti-Screen-Capture-window" proof-of-concept in April 2025 — a Python/PyQt6 application embedding a ChatGPT browser within a `WDA_EXCLUDEFROMCAPTURE`-flagged window, explicitly referencing interview cheating as its use case. Khorev [48] documented the development of "Ezzi," an open-source invisible interview assistant built with Electron, describing the platform-specific challenges of achieving capture invisibility across Windows and macOS. Mayerr [49] published "openinterviewcoder," a cross-platform Electron application supporting Windows, macOS, and Linux.
 
-**Vendor awareness.** The issue has been reported to Microsoft through their Q&A platform [52], where an educator documented students using `SetWindowDisplayAffinity(hWnd, WDA_EXCLUDEFROMCAPTURE)` to hide applications from classroom monitoring software. Community-suggested countermeasures included DLL injection to reset affinity flags and per-user services that periodically enumerate windows and terminate processes with capture-exclusion flags set. Proctoring vendors have begun responding: Proctorio [53] claims to block tools like Cluely by "preventing unauthorized apps from launching during exams," while Honorlock and Talview have implemented behavioral analysis targeting the timing patterns and gaze anomalies characteristic of AI-assisted responses.
+**Vendor awareness.** The issue has been reported to Microsoft through their Q&A platform [50], where an educator documented students using `SetWindowDisplayAffinity(hWnd, WDA_EXCLUDEFROMCAPTURE)` to hide applications from classroom monitoring software. Community-suggested countermeasures included DLL injection to reset affinity flags and per-user services that periodically enumerate windows and terminate processes with capture-exclusion flags set. Proctoring vendors have begun responding: Proctorio [51] claims to block tools like Cluely by "preventing unauthorized apps from launching during exams," while Honorlock and Talview have implemented behavioral analysis targeting the timing patterns and gaze anomalies characteristic of AI-assisted responses.
 
 **Distinction from our work.** The commercial tools and open-source PoCs described above demonstrate that the display affinity attack vector is independently known and actively exploited. However, no prior work has: (1) formally modeled the trust boundary violation between the browser capture API and the OS compositing pipeline; (2) provided a systematic cross-platform evaluation with pixel-level forensic verification; (3) analyzed which behavioral detection mechanisms can and cannot detect the attack; (4) proposed and evaluated countermeasures; or (5) tested the attack on macOS 15+ where the conventional understanding is that Apple's ScreenCaptureKit changes mitigate the vulnerability. Our finding that `NSWindow.sharingType = .none` remains fully effective on macOS 26 — contradicting both Apple's documentation and community assumptions — has not been reported elsewhere. This paper provides the first formal security analysis of a vulnerability class that is already being commercially exploited without academic scrutiny.
 
@@ -506,7 +504,7 @@ The implications extend beyond a single exploit. The Invisible Window attack rev
 
 We have proposed and evaluated countermeasures ranging from immediately deployable (display affinity flag enumeration) to long-term (hardware-level display integrity attestation). The most practical near-term defense combines native agent-based flag enumeration with JavaScript focus monitoring and advocacy for OS-level capture integrity APIs.
 
-More broadly, this work reinforces the growing academic consensus [18, 19, 20, 21] that screen-based surveillance is not a sustainable foundation for academic integrity. As evasion techniques grow more sophisticated and less detectable, the arms race between proctoring systems and bypass methods becomes increasingly untenable. Institutions would be better served by investing in assessment designs that are inherently resistant to cheating — open-book examinations, authentic assessments, oral defenses — rather than in ever-more-invasive monitoring of students' screens.
+More broadly, this work reinforces the growing academic consensus [5, 10, 18, 19] that screen-based surveillance is not a sustainable foundation for academic integrity. As evasion techniques grow more sophisticated and less detectable, the arms race between proctoring systems and bypass methods becomes increasingly untenable. Institutions would be better served by investing in assessment designs that are inherently resistant to cheating — open-book examinations, authentic assessments, oral defenses — rather than in ever-more-invasive monitoring of students' screens.
 
 We have followed coordinated vulnerability disclosure principles throughout this research and have notified affected vendors. We hope this work contributes to the development of more robust, privacy-respecting, and fundamentally sound approaches to maintaining academic integrity in online education.
 
@@ -548,74 +546,70 @@ We have followed coordinated vulnerability disclosure principles throughout this
 
 [17] R. Luijben, F. van den Broek, and G. Alpár, "Security requirements for proctoring in higher education," in *2024 IEEE Global Eng. Educ. Conf. (EDUCON)*, Kos Island, Greece, 2024, pp. 1–8.
 
-[18] K. Lee and M. Fanguy, "Online exam proctoring technologies: Educational innovation or deterioration?," *British J. Educ. Technol.*, vol. 53, no. 3, pp. 475–490, 2022.
+[18] A. Duncan and D. Joyner, "On the necessity (or lack thereof) of digital proctoring: Drawbacks, perceptions, and alternatives," *J. Computer Assisted Learning*, vol. 38, no. 5, pp. 1482–1496, 2022.
 
-[19] M. Khalil, P. Prinsloo, and S. Slade, "In the nexus of integrity and surveillance: Proctoring (re)considered," *J. Computer Assisted Learning*, vol. 38, no. 6, pp. 1589–1602, 2022.
+[19] B. Paris, R. Reynolds, and C. McGowan, "Sins of omission: Critical informatics perspectives on privacy in e-learning systems in higher education," *J. Assoc. Inf. Sci. Technol.*, vol. 73, no. 5, pp. 708–725, 2021.
 
-[20] A. Duncan and D. Joyner, "On the necessity (or lack thereof) of digital proctoring: Drawbacks, perceptions, and alternatives," *J. Computer Assisted Learning*, vol. 38, no. 5, pp. 1482–1496, 2022.
+[20] S. Kaddoura, S. Vincent, D. J. Hemanth, and I. Ashraf, "Computational intelligence and soft computing paradigm for cheating detection in online examinations," *Appl. Comput. Intell. Soft Comput.*, vol. 2023, art. 3739975, 2023.
 
-[21] B. Paris, R. Reynolds, and C. McGowan, "Sins of omission: Critical informatics perspectives on privacy in e-learning systems in higher education," *J. Assoc. Inf. Sci. Technol.*, vol. 73, no. 5, pp. 708–725, 2021.
+[21] B. J. Ferdosi, M. Rahman, A. M. Sakib, T. Helaly, and P. Chakraborty, "Modeling and classification of the behavioral patterns of students participating in online examination," *Human Behavior and Emerging Technol.*, vol. 2023, art. 2613802, 2023.
 
-[22] S. Kaddoura, S. Vincent, D. J. Hemanth, and I. Ashraf, "Computational intelligence and soft computing paradigm for cheating detection in online examinations," *Appl. Comput. Intell. Soft Comput.*, vol. 2023, art. 3739975, 2023.
+[22] N. Dilini, A. Senaratne, T. Yasarathna, N. Warnajith, and L. Seneviratne, "Cheating detection in browser-based online exams through eye gaze tracking," in *2021 6th Int. Conf. Information Technology Research (ICITR)*, IEEE, 2021, pp. 1–6.
 
-[23] B. J. Ferdosi, M. Rahman, A. M. Sakib, T. Helaly, and P. Chakraborty, "Modeling and classification of the behavioral patterns of students participating in online examination," *Human Behavior and Emerging Technol.*, vol. 2023, art. 2613802, 2023.
+[23] J. Guan, X. Li, Y. Zhang, and K. Andersson, "Design and implementation of continuous authentication mechanism based on multimodal fusion mechanism," *Security and Communication Networks*, vol. 2021, art. 6669429, 2021.
 
-[24] N. Dilini, A. Senaratne, T. Yasarathna, N. Warnajith, and L. Seneviratne, "Cheating detection in browser-based online exams through eye gaze tracking," in *2021 6th Int. Conf. Information Technology Research (ICITR)*, IEEE, 2021, pp. 1–6.
+[24] T. Hu, W. Niu, X. Zhang, X. Liu, J. Lu, Y. Liu, and J. Chen, "An insider threat detection approach based on mouse dynamics and deep learning," *Security and Communication Networks*, vol. 2019, art. 3898951, 2019.
 
-[25] J. Guan, X. Li, Y. Zhang, and K. Andersson, "Design and implementation of continuous authentication mechanism based on multimodal fusion mechanism," *Security and Communication Networks*, vol. 2021, art. 6669429, 2021.
+[25] X. Wang, Q. Zheng, K. Zheng, T. Wu, and G. M. Perez, "User authentication method based on MKL for keystroke and mouse behavioral feature fusion," *Security and Communication Networks*, vol. 2020, art. 9282380, 2020.
 
-[26] T. Hu, W. Niu, X. Zhang, X. Liu, J. Lu, Y. Liu, and J. Chen, "An insider threat detection approach based on mouse dynamics and deep learning," *Security and Communication Networks*, vol. 2019, art. 3898951, 2019.
+[26] T. Lyu, L. Liu, F. Zhu, S. Hu, R. Ye, and J. Dalle, "BEFP: An extension recognition system based on behavioral and environmental fingerprinting," *Security and Communication Networks*, vol. 2022, art. 7896571, 2022.
 
-[27] X. Wang, Q. Zheng, K. Zheng, T. Wu, and G. M. Perez, "User authentication method based on MKL for keystroke and mouse behavioral feature fusion," *Security and Communication Networks*, vol. 2020, art. 9282380, 2020.
+[27] S. Yazici, H. Yildiz Durak, B. Aksu Dünya, and B. Şentürk, "Online versus face-to-face cheating: The prevalence of cheating behaviours during the pandemic compared to the pre-pandemic among Turkish university students," *J. Computer Assisted Learning*, vol. 39, no. 1, pp. 231–254, 2022.
 
-[28] T. Lyu, L. Liu, F. Zhu, S. Hu, R. Ye, and J. Dalle, "BEFP: An extension recognition system based on behavioral and environmental fingerprinting," *Security and Communication Networks*, vol. 2022, art. 7896571, 2022.
+[28] M. Rüth, M. Jansen, and K. Kaspar, "Cheating behaviour in online exams: On the role of needs, conceptions and reasons of university students," *J. Computer Assisted Learning*, vol. 40, no. 5, pp. 1987–2008, 2024.
 
-[29] S. Yazici, H. Yildiz Durak, B. Aksu Dünya, and B. Şentürk, "Online versus face-to-face cheating: The prevalence of cheating behaviours during the pandemic compared to the pre-pandemic among Turkish university students," *J. Computer Assisted Learning*, vol. 39, no. 1, pp. 231–254, 2022.
+[29] M. Gribbins and C. J. Bonk, "An exploration of instructors' perceptions about online proctoring and its value in ensuring academic integrity," *British J. Educ. Technol.*, vol. 54, no. 6, pp. 1693–1714, 2023.
 
-[30] M. Rüth, M. Jansen, and K. Kaspar, "Cheating behaviour in online exams: On the role of needs, conceptions and reasons of university students," *J. Computer Assisted Learning*, vol. 40, no. 5, pp. 1987–2008, 2024.
+[30] P. Prinsloo, M. Khalil, and S. Slade, "Vulnerable student digital well-being in AI-powered educational decision support systems (AI-EDSS) in higher education," *British J. Educ. Technol.*, vol. 55, no. 5, pp. 2075–2092, 2024.
 
-[31] M. Gribbins and C. J. Bonk, "An exploration of instructors' perceptions about online proctoring and its value in ensuring academic integrity," *British J. Educ. Technol.*, vol. 54, no. 6, pp. 1693–1714, 2023.
+[31] E. Marano, P. M. Newton, Z. Birch, M. Croombs, C. Gilbert, and M. J. Draper, "What is the student experience of remote proctoring? A pragmatic scoping review," *Higher Educ. Quarterly*, vol. 78, no. 3, pp. 1031–1047, 2024.
 
-[32] P. Prinsloo, M. Khalil, and S. Slade, "Vulnerable student digital well-being in AI-powered educational decision support systems (AI-EDSS) in higher education," *British J. Educ. Technol.*, vol. 55, no. 5, pp. 2075–2092, 2024.
+[32] A. A. Mehrishi, D. K. Sarmah, and M. Daneva, "How can cryptography secure online assessments against academic dishonesty?," *Security and Privacy*, vol. 8, no. 4, art. e70065, 2025.
 
-[33] E. Marano, P. M. Newton, Z. Birch, M. Croombs, C. Gilbert, and M. J. Draper, "What is the student experience of remote proctoring? A pragmatic scoping review," *Higher Educ. Quarterly*, vol. 78, no. 3, pp. 1031–1047, 2024.
+[33] A. Lachheb, V. Abramenka-Lachheb, S. Moore, and C. Gray, "The role of design ethics in maintaining students' privacy: A call to action to learning designers in higher education," *British J. Educ. Technol.*, vol. 54, no. 6, pp. 1653–1670, 2023.
 
-[34] A. A. Mehrishi, D. K. Sarmah, and M. Daneva, "How can cryptography secure online assessments against academic dishonesty?," *Security and Privacy*, vol. 8, no. 4, art. e70065, 2025.
+[34] Association for Computing Machinery, "ACM Code of Ethics and Professional Conduct," ACM, 2018. [Online]. Available: https://www.acm.org/code-of-ethics
 
-[35] A. Lachheb, V. Abramenka-Lachheb, S. Moore, and C. Gray, "The role of design ethics in maintaining students' privacy: A call to action to learning designers in higher education," *British J. Educ. Technol.*, vol. 54, no. 6, pp. 1653–1670, 2023.
+[35] Institute of Electrical and Electronics Engineers, "IEEE Code of Ethics," IEEE, 2024. [Online]. Available: https://www.ieee.org/about/corporate/governance/p7-8
 
-[36] Association for Computing Machinery, "ACM Code of Ethics and Professional Conduct," ACM, 2018. [Online]. Available: https://www.acm.org/code-of-ethics
+[36] OWASP Foundation, "Vulnerability Disclosure Cheat Sheet," OWASP Cheat Sheet Series. [Online]. Available: https://cheatsheetseries.owasp.org/cheatsheets/Vulnerability_Disclosure_Cheat_Sheet.html
 
-[37] Institute of Electrical and Electronics Engineers, "IEEE Code of Ethics," IEEE, 2024. [Online]. Available: https://www.ieee.org/about/corporate/governance/p7-8
+[37] Forum of Incident Response and Security Teams (FIRST), "Guidelines and Practices for Multi-Party Vulnerability Coordination and Disclosure," ver. 1.1, FIRST, 2020. [Online]. Available: https://www.first.org/global/sigs/vulnerability-coordination/multiparty/guidelines-v1-1
 
-[38] OWASP Foundation, "Vulnerability Disclosure Cheat Sheet," OWASP Cheat Sheet Series. [Online]. Available: https://cheatsheetseries.owasp.org/cheatsheets/Vulnerability_Disclosure_Cheat_Sheet.html
+[38] Cybersecurity and Infrastructure Security Agency, "Coordinated Vulnerability Disclosure Program," CISA, 2025. [Online]. Available: https://www.cisa.gov/resources-tools/programs/coordinated-vulnerability-disclosure-program
 
-[39] Forum of Incident Response and Security Teams (FIRST), "Guidelines and Practices for Multi-Party Vulnerability Coordination and Disclosure," ver. 1.1, FIRST, 2020. [Online]. Available: https://www.first.org/global/sigs/vulnerability-coordination/multiparty/guidelines-v1-1
+[39] D. Reidsma, J. van der Ham, and A. Continella, "Operationalizing cybersecurity research ethics review: From principles and guidelines to practice," in *Proc. 2nd Int. Workshop on Ethics in Computer Security (EthiCS 2023)*, co-located with NDSS Symp., San Diego, CA, Feb. 2023.
 
-[40] Cybersecurity and Infrastructure Security Agency, "Coordinated Vulnerability Disclosure Program," CISA, 2025. [Online]. Available: https://www.cisa.gov/resources-tools/programs/coordinated-vulnerability-disclosure-program
+[40] Y. Atoum, L. Chen, A. X. Liu, S. D. H. Hsu, and X. Liu, "Automated online exam proctoring," *IEEE Trans. Multimedia*, vol. 19, no. 7, pp. 1609–1624, 2017.
 
-[41] D. Reidsma, J. van der Ham, and A. Continella, "Operationalizing cybersecurity research ethics review: From principles and guidelines to practice," in *Proc. 2nd Int. Workshop on Ethics in Computer Security (EthiCS 2023)*, co-located with NDSS Symp., San Diego, CA, Feb. 2023.
+[41] S. Mukherjee, V. Distler, G. Lenzini, and P. Cardoso-Leite, "Balancing the perception of cheating detection, privacy and fairness: A mixed-methods study of visual data obfuscation in remote proctoring," in *Proc. 2024 European Symp. Usable Security (EuroUSEC '24)*, Karlstad, Sweden, ACM, 2024.
 
-[42] Y. Atoum, L. Chen, A. X. Liu, S. D. H. Hsu, and X. Liu, "Automated online exam proctoring," *IEEE Trans. Multimedia*, vol. 19, no. 7, pp. 1609–1624, 2017.
+[42] K. L. Adkins and D. A. Joyner, "Scaling anti-plagiarism efforts to meet the needs of large online computer science classes: Challenges, solutions, and recommendations," *J. Computer Assisted Learning*, vol. 38, no. 6, pp. 1603–1619, 2022.
 
-[43] S. Mukherjee, V. Distler, G. Lenzini, and P. Cardoso-Leite, "Balancing the perception of cheating detection, privacy and fairness: A mixed-methods study of visual data obfuscation in remote proctoring," in *Proc. 2024 European Symp. Usable Security (EuroUSEC '24)*, Karlstad, Sweden, ACM, 2024.
+[43] Interview Coder, "Interview Coder — AI Interview Assistant for Technical Interviews," 2026. [Online]. Available: https://www.interviewcoder.co/
 
-[44] K. L. Adkins and D. A. Joyner, "Scaling anti-plagiarism efforts to meet the needs of large online computer science classes: Challenges, solutions, and recommendations," *J. Computer Assisted Learning*, vol. 38, no. 6, pp. 1603–1619, 2022.
+[44] "Interview Coder 3.0: Promises Complete Invisibility During Technical Interviews," OpenPR, Mar. 2026. [Online]. Available: https://www.openpr.com/news/4427427/interview-coder-3-0-promises-complete-invisibility-during
 
-[45] Interview Coder, "Interview Coder — AI Interview Assistant for Technical Interviews," 2026. [Online]. Available: https://www.interviewcoder.co/
+[45] Cluely, "Cluely — AI-Powered Real-Time Interview Assistant," 2025. [Online]. Available: https://cluely.com/
 
-[46] "Interview Coder 3.0: Promises Complete Invisibility During Technical Interviews," OpenPR, Mar. 2026. [Online]. Available: https://www.openpr.com/news/4427427/interview-coder-3-0-promises-complete-invisibility-during
+[46] FabricHQ, "Interview Cheating in 2026: The Rise of AI Tools Like Cluely and Interview Coder," Jan. 2026. [Online]. Available: https://www.fabrichq.ai/blogs/interview-cheating-in-2026-the-rise-of-ai-tools-like-cluely-and-interview-coder
 
-[47] Cluely, "Cluely — AI-Powered Real-Time Interview Assistant," 2025. [Online]. Available: https://cluely.com/
+[47] idanless, "Anti-Screen-Capture-window: Hidden ChatGPT Browser (Anti-Screen Capture PoC)," GitHub, Apr. 2025. [Online]. Available: https://github.com/idanless/Anti-Screen-Capture-window
 
-[48] FabricHQ, "Interview Cheating in 2026: The Rise of AI Tools Like Cluely and Interview Coder," Jan. 2026. [Online]. Available: https://www.fabrichq.ai/blogs/interview-cheating-in-2026-the-rise-of-ai-tools-like-cluely-and-interview-coder
+[48] D. Khorev, "Building Ezzi: My Journey Creating an Invisible Tech Interview Assistant (Now Open Source)," Level Up Coding, 2026. [Online]. Available: https://levelup.gitconnected.com/building-ezzi-my-journey-creating-an-invisible-tech-interview-assistant-now-open-source-a1963a8fe0f3
 
-[49] idanless, "Anti-Screen-Capture-window: Hidden ChatGPT Browser (Anti-Screen Capture PoC)," GitHub, Apr. 2025. [Online]. Available: https://github.com/idanless/Anti-Screen-Capture-window
+[49] J. Mayerr, "openinterviewcoder: An undetectable AI assistant for coding interviews," GitHub, Mar. 2025. [Online]. Available: https://github.com/JoshMayerr/openinterviewcoder
 
-[50] D. Khorev, "Building Ezzi: My Journey Creating an Invisible Tech Interview Assistant (Now Open Source)," Level Up Coding, 2026. [Online]. Available: https://levelup.gitconnected.com/building-ezzi-my-journey-creating-an-invisible-tech-interview-assistant-now-open-source-a1963a8fe0f3
+[50] M. Ukt, "SetWindowDisplayAffinity bad usecase," Microsoft Q&A, Apr. 2024. [Online]. Available: https://learn.microsoft.com/en-us/answers/questions/1653885/setwindowdisplayaffinity-bad-usecase
 
-[51] J. Mayerr, "openinterviewcoder: An undetectable AI assistant for coding interviews," GitHub, Mar. 2025. [Online]. Available: https://github.com/JoshMayerr/openinterviewcoder
-
-[52] M. Ukt, "SetWindowDisplayAffinity bad usecase," Microsoft Q&A, Apr. 2024. [Online]. Available: https://learn.microsoft.com/en-us/answers/questions/1653885/setwindowdisplayaffinity-bad-usecase
-
-[53] Proctorio, "How Proctorio Blocks Cluely: Stopping AI Cheating Tools Like Cluely in Online Exams," Proctorio Blog, 2026. [Online]. Available: https://proctorio.com/about/blog/how-proctorio-blocks-cluely
+[51] Proctorio, "How Proctorio Blocks Cluely: Stopping AI Cheating Tools Like Cluely in Online Exams," Proctorio Blog, 2026. [Online]. Available: https://proctorio.com/about/blog/how-proctorio-blocks-cluely

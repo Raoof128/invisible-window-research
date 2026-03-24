@@ -44,3 +44,9 @@ reasoning-engine/reasoning.db
 
 # MCP config (contains local paths)
 .mcp.json
+
+# Test outputs
+TEST/
+
+# Windows ISO
+*.iso

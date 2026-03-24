@@ -20,19 +20,27 @@ This repository contains the research artifacts for an IEEE-format security pape
 
 ```
 ├── docs/
-│   ├── invisible-window-paper.md      # Full IEEE-format manuscript (8,672 words, 53 refs)
+│   ├── invisible-window-paper.md      # Full IEEE-format manuscript (8,672 words, 51 refs)
 │   ├── invisible-window-references.md # 42 verified academic references (Harvard Australian)
-│   └── anthropic-grant-pitch.md       # Multi-program grant strategy
+│   ├── anthropic-grant-pitch.md       # Multi-program grant strategy
+│   └── applications-ready-to-send.md  # Ready-to-send Anthropic program applications
 ├── poc/
 │   ├── macos/                         # macOS PoC (Swift, sharingType = .none)
 │   │   ├── invisible_window.swift     # Source code
 │   │   ├── build.sh                   # Build script
 │   │   ├── capture_verify.py          # Capture verification tool
-│   │   ├── comprehensive_test.py      # 22-subtest validation suite
+│   │   ├── comprehensive_test.py      # 16-subtest validation suite
 │   │   └── RESULTS.md                 # Evaluation results (Rev 3 — FULL EVASION confirmed)
 │   ├── windows/                       # Windows PoC (C/Win32, WDA_EXCLUDEFROMCAPTURE)
 │   │   ├── invisible_window.c         # Source code
-│   │   └── build.bat                  # MSVC + GCC build script
+│   │   ├── invisible_window_tcc.c     # TCC-compatible C PoC
+│   │   ├── build.bat                  # MSVC + GCC build script
+│   │   ├── test_harness.c             # C test harness for automated capture/comparison
+│   │   ├── test_minimal.c             # Minimal standalone test
+│   │   ├── comprehensive_test.py      # Comprehensive Python test suite
+│   │   ├── automated_test.py          # Automated multi-round test runner
+│   │   ├── RESULTS.md                 # Evaluation results (100% evasion, 5 rounds)
+│   │   └── test_results/              # Captured BMPs, diff PNGs, JSON results, log
 │   └── linux/                         # Linux analysis (NOT vulnerable)
 │       ├── invisible_window_x11.c     # X11 experimental PoC
 │       ├── build.sh                   # Build script

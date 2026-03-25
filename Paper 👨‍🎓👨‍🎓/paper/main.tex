@@ -36,7 +36,7 @@ ORCID: \href{https://orcid.org/0009-0000-6214-258X}{0009-0000-6214-258X}}}
 % Abstract
 % ============================================================
 \begin{abstract}
-Phishing attacks have evolved into multimodal threats that exploit semantic coherence across text, visual imagery, and metadata to bypass traditional security defences. This paper presents a comprehensive multimodal phishing detection system that integrates natural language processing, computer vision, and forensic metadata analysis through a novel hybrid late-fusion architecture with cross-modal attention mechanisms. The system employs RoBERTa for semantic text encoding, Vision Transformer (ViT-B/32) for brand logo and screenshot analysis, and XGBoost for header/URL forensics, unified through cross-modal attention layers that explicitly model inter-feature alignment. Evaluation across five benchmark datasets demonstrates strong performance (F1-score: 0.992, +4.1\% over baselines), robust resilience to gradient-based adversarial perturbations, and sub-100\,ms inference latency suitable for enterprise deployment. The architecture further addresses modern attack vectors such as LLM-generated phishing, underscoring the necessity of multimodal fusion for contemporary email security.
+Phishing attacks have evolved into multimodal threats that exploit semantic coherence across text, visual imagery, and metadata to bypass traditional security defences. We describe a multimodal phishing detection system that integrates natural language processing, computer vision, and forensic metadata analysis through a novel hybrid late-fusion architecture with cross-modal attention mechanisms. The system employs RoBERTa for semantic text encoding, Vision Transformer (ViT-B/16) for brand logo and screenshot analysis, and XGBoost for header/URL forensics, unified through cross-modal attention layers that explicitly model inter-feature alignment. Evaluation across five benchmark datasets demonstrates strong performance (F1-score: 0.992, +3.9\% over baselines), resilience to gradient-based adversarial perturbations, and sub-100\,ms inference latency suitable for enterprise deployment. The architecture further addresses modern attack vectors such as LLM-generated phishing, which supports the case for multimodal fusion in email security.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -48,18 +48,18 @@ Phishing detection, multimodal fusion, deep learning, cross-modal attention, adv
 % ============================================================
 \section{Introduction}
 
-Phishing remains one of the most pervasive and costly cyber threats, with business email compromise alone responsible for over \$12.5 billion in reported losses in 2023. Despite substantial progress in machine learning-based defences, global phishing volumes continue to rise, with recent reports indicating more than 1.1 million unique phishing websites detected in a single quarter and a 17.3\% year-over-year increase in phishing emails. This divergence between academic progress and operational outcomes highlights a critical gap: current defences are not aligned with how modern phishing campaigns actually operate.
+Phishing remains one of the most pervasive and costly cyber threats, with business email compromise alone responsible for over \$12.5 billion in reported losses in 2023. Despite advances in machine learning-based defences, global phishing volumes continue to rise, with recent reports indicating more than 1.1 million unique phishing websites detected in a single quarter and a 17.3\% year-over-year increase in phishing emails. This divergence between academic progress and operational outcomes highlights a critical gap: current defences are not aligned with how modern phishing campaigns actually operate.
 
 Contemporary phishing rarely exploits a single channel. Instead, attackers combine convincing email text, realistic webpage screenshots or document images, and forged technical artifacts such as headers, URLs, and certificates to create multimodal lures that bypass unimodal filters. Large language models (LLMs) now generate fluent, contextually tailored phishing content at scale, while generative vision models synthesise near-perfect brand logos and invoices, further eroding traditional detection heuristics that rely on grammatical errors or crude visual spoofing.
 
-In response, recent research advocates multimodal phishing detection systems that jointly analyse text, visual content, and metadata. Early and late fusion architectures have demonstrated that combining modalities can substantially improve accuracy and robustness, but important trade-offs remain around interaction modelling, latency, interpretability, and deployment complexity. There is a need for architectures that not only achieve high performance in controlled benchmarks, but also meet the operational constraints of security operations centres (SOCs).
+Recent research advocates multimodal phishing detection systems that jointly analyse text, visual content, and metadata. Early and late fusion architectures have demonstrated that combining modalities can improve accuracy and robustness, but important trade-offs remain around interaction modelling, latency, interpretability, and deployment complexity. There is a need for architectures that not only achieve high performance in controlled benchmarks, but also meet the operational constraints of security operations centres (SOCs).
 
 \subsection{Contributions}
 
 This paper addresses the multimodal phishing detection challenge by proposing a hybrid fusion architecture. The specific contributions are:
 \begin{enumerate}
-    \item \textbf{Novel Architecture:} A hybrid late-fusion framework combining RoBERTa text encoding, ViT-B/32 visual analysis, and XGBoost metadata classification, unified through cross-modal attention layers.
-    \item \textbf{Comprehensive Evaluation:} Systematic benchmarking across five diverse datasets achieving an average F1-score of 0.992.
+    \item \textbf{Novel Architecture:} A hybrid late-fusion framework combining RoBERTa text encoding, ViT-B/16 visual analysis, and XGBoost metadata classification, unified through cross-modal attention layers.
+    \item \textbf{Evaluation:} Systematic benchmarking across five diverse datasets achieving an average F1-score of 0.992.
     \item \textbf{Adversarial Robustness:} Rigorous evaluation under FGSM, PGD, and MIM attacks, showing the system maintains 85.7\% accuracy under white-box conditions.
     \item \textbf{Emerging Threat Detection:} Evaluated robustness against LLM-generated phishing content as a growing attack vector.
 \end{enumerate}
@@ -71,7 +71,7 @@ This paper addresses the multimodal phishing detection challenge by proposing a 
 
 \subsection{Text-Based Detection}
 
-Early phishing detection systems relied on keyword matching. The transformer revolution dramatically improved detection: BERT \cite{devlin_2019_bert} and RoBERTa \cite{liu_2019_roberta} models achieve 98--99\% accuracy on email classification by capturing semantic context. However, text-only approaches fail against image-based phishing and LLM-generated content that bypasses linguistic anomaly detection \cite{guo_2024_chatbots_phishbots}.
+Early phishing detection systems relied on keyword matching. Transformer-based models improved detection to 98--99\%: BERT \cite{devlin_2019_bert} and RoBERTa \cite{liu_2019_roberta} achieve this accuracy on email classification by capturing semantic context. However, text-only approaches fail against image-based phishing and LLM-generated content that bypasses linguistic anomaly detection \cite{guo_2024_chatbots_phishbots}.
 
 \subsection{Vision-Based Detection}
 
@@ -85,7 +85,7 @@ Metadata analysis exploits the difficulty of forging technical artifacts. Email 
 
 Recent work explores cross-modal attention mechanisms that explicitly model inter-modal relationships \cite{baltrusaitis_2019_multimodal}. Cross-modal attention allows text tokens to query image features, detecting semantic mismatches (e.g., ``PayPal'' text with ``Microsoft'' logo) \cite{tan_2019_lxmert}. This paper builds on these advances by integrating them into a unified hybrid framework.
 
-\textbf{Gap Analysis.} While recent multimodal systems achieve strong accuracy, they exhibit critical limitations that our work addresses:
+\textbf{Gap Analysis.} Recent multimodal systems achieve strong accuracy but exhibit critical limitations that our work addresses:
 \begin{itemize}
     \item Phishpedia \cite{lin_2021_phishpedia} and PhishIntention \cite{liu_2022_phishintention} rely on reference-based matching, failing against zero-day brands absent from reference databases.
     \item KnowPhish \cite{li_2024_knowphish} uses LLMs for reasoning but lacks adversarial robustness evaluation---a critical gap given that attackers can craft adversarial examples.
@@ -93,7 +93,7 @@ Recent work explores cross-modal attention mechanisms that explicitly model inte
     \item None of these systems evaluate emerging threats (LLM-generated phishing) or provide statistical significance tests.
 \end{itemize}
 
-Our architecture addresses these gaps through: (1) CLIP-based zero-shot detection, (2) systematic adversarial evaluation, (3) comprehensive emerging threat benchmarks, and (4) statistical rigour (Cohen's $d$, confidence intervals).
+Our architecture addresses these gaps through: (1) CLIP-based zero-shot detection, (2) systematic adversarial evaluation, (3) emerging threat benchmarks, and (4) statistical rigour (Cohen's $d$, confidence intervals).
 
 % ============================================================
 % III. Methodology
@@ -116,7 +116,7 @@ The proposed multimodal phishing detection system integrates three specialised e
 
 \textit{1) Text Encoding:} We employ RoBERTa-base (125M parameters) fine-tuned on phishing email corpora. Input email text (subject + body) is tokenised via BPE and truncated/padded to 512 tokens.
 
-\textit{2) Vision Encoding:} We utilise Vision Transformer ViT-B/32 with CLIP pre-training. Screenshots are resised to $224 \times 224$, divided into patches, and encoded. YOLOv8 is used to identify logo bounding boxes.
+\textit{2) Vision Encoding:} We utilise Vision Transformer ViT-B/16 with CLIP pre-training. Screenshots are resized to $224 \times 224$, divided into patches, and encoded. YOLOv8 is used to identify logo bounding boxes.
 
 \textit{3) Metadata Encoding:} We use an XGBoost classifier with 100 estimators. 87 handcrafted features are extracted from email headers (DKIM/SPF, hops) and URL features (domain age, entropy).
 
@@ -124,13 +124,13 @@ The proposed multimodal phishing detection system integrates three specialised e
 
 When both text and image modalities are present, we apply a cross-modal attention layer that allows text representations to query visual features. Specifically:
 
-Let $h_{\text{CLS}} \in \mathbb{R}^{768}$ be the RoBERTa [CLS] token embedding (query), and $H_{\text{img}} \in \mathbb{R}^{196 \times 768}$ be the ViT patch embeddings (keys and values), where $196 = (224/32)^2$ patches.
+Let $h_{\text{CLS}} \in \mathbb{R}^{768}$ be the RoBERTa [CLS] token embedding (query), and $H_{\text{img}} \in \mathbb{R}^{196 \times 768}$ be the ViT patch embeddings (keys and values), where $196 = (224/16)^2$ patches.
 
 The cross-modal attention output is computed as:
 \begin{equation}
     \mathbf{f}_{\text{cross}} = \text{Attention}(\mathbf{W}_Q h_{\text{CLS}},\, \mathbf{W}_K H_{\text{img}},\, \mathbf{W}_V H_{\text{img}})
 \end{equation}
-where $\mathbf{W}_Q, \mathbf{W}_K, \mathbf{W}_V \in \mathbb{R}^{768 \times 64}$ are learned projection matrices, and:
+where $\mathbf{W}_Q, \mathbf{W}_K, \mathbf{W}_V \in \mathbb{R}^{64 \times 768}$ are learned projection matrices (per-head; the full multi-head projection is applied across 8 independent heads), and:
 \begin{equation}
     \text{Attention}(Q, K, V) = \text{softmax}\!\left(\frac{QK^T}{\sqrt{d_k}}\right) V
 \end{equation}
@@ -178,9 +178,9 @@ where $\mathbb{1}_m$ is an indicator function (1 if modality $m$ is present, 0 o
 
 \subsection{Training Configuration}
 
-All models were trained using the AdamW optimiser with weight decay $\lambda = 0.01$. The learning rate for RoBERTa was set to $2 \times 10^{-5}$ with linear warmup over the first 10\% of training steps, then cosine annealing to $10^{-7}$. The ViT encoder used a learning rate of $5 \times 10^{-6}$ with the same schedule. XGBoost was trained separately using 100 estimators with max depth 6, learning rate 0.1, and min child weight 1.
+We trained all models with the AdamW optimiser with weight decay $\lambda = 0.01$. The learning rate for RoBERTa was set to $2 \times 10^{-5}$ with linear warmup over the first 10\% of training steps, then cosine annealing to $10^{-7}$. The ViT encoder used a learning rate of $5 \times 10^{-6}$ with the same schedule. XGBoost was trained separately using 100 estimators with max depth 6, learning rate 0.1, and min child weight 1.
 
-Training proceeded for 10 epochs with effective batch size 64 (achieved via gradient accumulation over 4 steps). Early stopping was applied with patience 3 based on validation F1-score. The fusion layer used a two-layer MLP ($768 \to 256 \to 2$) trained end-to-end with binary cross-entropy loss.
+Training proceeded for 10 epochs with effective batch size 64 (achieved via gradient accumulation over 4 steps). Early stopping was applied with patience 3 based on validation F1-score. The fusion layer used a two-layer MLP ($513 \to 256 \to 2$) trained end-to-end with binary cross-entropy loss.
 
 % ============================================================
 % IV. Experimental Setup
@@ -193,9 +193,9 @@ The PhishIntention benchmark dataset provides phishing webpage screenshots with 
 
 \subsection{Data Partitioning and Cross-Validation}
 
-To ensure robust evaluation, each dataset was partitioned using stratified random sampling: 70\% training, 15\% validation, 15\% test. Stratification preserved the phishing-to-benign ratio in each split. For temporal robustness assessment, the Nazario Corpus was alternatively split chronologically (training: 2004--2020, test: 2021--2025) to evaluate performance on emerging attack patterns.
+To ensure robust evaluation, we partitioned each dataset using stratified random sampling: 70\% training, 15\% validation, 15\% test. Stratification preserved the phishing-to-benign ratio in each split. For temporal robustness assessment, the Nazario Corpus was alternatively split chronologically (training: 2004--2020, test: 2021--2025) to evaluate performance on emerging attack patterns.
 
-Cross-dataset generalisation was evaluated using a leave-one-out protocol: models trained on datasets $\{D_1, D_2, D_3, D_4\}$ were tested zero-shot on $D_5$.
+We evaluated cross-dataset generalisation using a leave-one-out protocol: models trained on datasets $\{D_1, D_2, D_3, D_4\}$ were tested zero-shot on $D_5$.
 
 \begin{figure}[t]
     \centering
@@ -212,11 +212,11 @@ Cross-dataset generalisation was evaluated using a leave-one-out protocol: model
 
 \subsection{Overall Performance}
 
-The proposed multimodal hybrid-fusion model achieves an average F1-score of 0.992 across five benchmark datasets, outperforming all unimodal baselines by a significant margin. Compared to the strongest unimodal baseline (RoBERTa-only, F1 = 0.953), the improvement of +4.1 percentage points demonstrates the effectiveness of modelling inter-modal dependencies.
+The proposed multimodal hybrid-fusion model achieves an average F1-score of 0.992 across five benchmark datasets, outperforming all unimodal baselines. Compared to the strongest unimodal baseline (RoBERTa-only, F1 = 0.953), the improvement of +3.9 percentage points demonstrates the effectiveness of modelling inter-modal dependencies.
 
 \subsection{Ablation Study}
 
-A comprehensive ablation study was conducted on the PhishIntention dataset (Fig.~\ref{fig:ablation}).
+We performed an ablation study on the PhishIntention dataset (Fig.~\ref{fig:ablation}).
 
 \textbf{Mechanistic Analysis of Modality Contributions.} To understand why each modality is critical, we analysed failure modes:
 \begin{itemize}
@@ -236,7 +236,7 @@ A comprehensive ablation study was conducted on the PhishIntention dataset (Fig.
 
 \subsection{Statistical Significance and Effect Sizes}
 
-To confirm robustness, we conducted paired two-tailed t-tests over 10 random seeds with Bonferroni correction.
+To confirm robustness, we conducted paired two-tailed t-tests over 10 random seeds with Bonferroni correction (Table~\ref{tab:significance}).
 
 \begin{table}[t]
     \centering
@@ -257,7 +257,7 @@ While the Full vs No X-Attn comparison ($p = 0.036$) does not survive strict Bon
 
 \subsection{Per-Class Performance}
 
-Figure~\ref{fig:confusion} shows the confusion matrix. False positives remain low (0.9\%), satisfying enterprise constraints.
+Figure~\ref{fig:confusion} shows the confusion matrix (Table~\ref{tab:perclass}). False positives remain low (0.9\%), satisfying enterprise constraints.
 
 \begin{figure}[t]
     \centering
@@ -307,7 +307,7 @@ We evaluate robustness under a white-box threat model where the attacker has com
 
 \subsection{Failure Case Analysis}
 
-We manually inspected all 152 misclassifications on the Nazario Corpus test set.
+We manually inspected all 152 misclassifications on the Nazario Corpus test set (Table~\ref{tab:failures}).
 
 \begin{table}[t]
     \centering
@@ -338,11 +338,11 @@ All experiments used fixed seeds $\{42, 100, 150, 200, 250, 300, 350, 400, 450, 
 
 \subsection{Theoretical Implications}
 
-The findings of this study affirm that phishing detection is inherently a multimodal reasoning problem rather than a unimodal classification task. While traditional security systems treat text, images, and metadata independently, the proposed architecture demonstrates that threat signals often emerge from semantic inconsistencies between modalities, such as mismatched branding, discordant text--image relationships, or domain metadata that contradicts visual cues. This supports the growing body of theoretical work suggesting that phishing attacks rely on violating semantic coherence rather than exploiting isolated lexical or visual features.
+These results support the view that phishing detection is inherently a multimodal reasoning problem rather than a unimodal classification task. Traditional security systems treat text, images, and metadata independently, yet the proposed architecture demonstrates that threat signals often emerge from semantic inconsistencies between modalities, such as mismatched branding, discordant text--image relationships, or domain metadata that contradicts visual cues. This supports the growing body of theoretical work suggesting that phishing attacks rely on violating semantic coherence rather than exploiting isolated lexical or visual features.
 
-The strong statistical significance and large effect sizes observed add further weight to this interpretation. Specifically, the comparison between the full multimodal model and the RoBERTa-only baseline yields Cohen's $d = 1.82$ (very large effect), while the comparison with ViT-only yields $d = 1.29$ (large effect). Effect sizes exceeding 0.8 are considered substantial indicators of practical significance, demonstrating that multimodal fusion delivers meaningful real-world performance improvements rather than marginal gains.
+The strong statistical significance and large effect sizes observed add further weight to this interpretation. Specifically, the comparison between the full multimodal model and the RoBERTa-only baseline yields Cohen's $d = 1.82$ (very large effect), while the comparison with ViT-only yields $d = 1.29$ (large effect). Effect sizes exceeding 0.8 are considered substantial indicators of practical significance, confirming that the gains are not attributable to chance.
 
-Cross-modal attention alignment patterns (Fig.~\ref{fig:heatmap}) further illustrate how text tokens corresponding to brand names and action verbs attend strongly to logo regions in screenshots, providing interpretable evidence for the model's decision-making process.
+Cross-modal attention alignment patterns (Fig.~\ref{fig:heatmap}) further illustrate how text tokens corresponding to brand names and action verbs attend strongly to logo regions in screenshots, offering interpretable evidence for the model's predictions.
 
 \begin{figure}[t]
     \centering
@@ -363,11 +363,11 @@ The system exhibits several properties that make it suitable for enterprise-scal
     \item \textit{Cost efficiency:} Deploying the model on AWS G5 instances costs approximately AUD~\$1.01/hour. Processing 100,000 emails per day requires $\sim$3.5 GPU hours, translating to approximately AUD~\$105/month---significantly lower than commercial anti-phishing solutions (AUD~\$5,000--\$15,000/month).
 \end{itemize}
 
-These characteristics demonstrate that the proposed architecture is not merely a research prototype but a viable solution for real-world SOC and MTA infrastructure.
+These characteristics demonstrate that the proposed architecture is deployable in production SOC and MTA environments.
 
 \subsection{When the System Fails: Limitations in Practice}
 
-While strong, the system has limitations:
+The system has several limitations:
 \begin{itemize}
     \item \textit{Adversarial metadata manipulation:} If attackers compromise legitimate infrastructure, metadata signals become unreliable.
     \item \textit{Novel brand impersonation:} Zero-shot detection via CLIP works for established brands but fails for niche brands.
@@ -402,7 +402,7 @@ Table~\ref{tab:comparison} presents a quantitative comparison with leading multi
     \textsuperscript{d}Phishpedia performs brand identification (identifying which brand is impersonated), not binary phishing/benign detection. The reported F1 is for the brand identification task.
 \end{table}
 
-The results show a 1.9\% improvement over PhishAgent and a 50\% reduction in false positives, reinforcing the value of cross-modal attention and metadata integration.
+The results show a 3.1 percentage point improvement over PhishAgent and a 62.5\% reduction in false positives, reinforcing the value of cross-modal attention and metadata integration.
 
 % ============================================================
 % VII. Limitations and Ethical Considerations
@@ -421,7 +421,7 @@ Although the proposed multimodal phishing detection system demonstrates strong e
 
 \textit{4) Metadata Adversarial Control:} Metadata signals (SPF, DKIM, IP geolocation) can be manipulated or inherited from compromised legitimate accounts. As a result, metadata-only or metadata-dominant scenarios can yield false negatives when adversaries leverage trusted infrastructure.
 
-\textit{5) Resource Requirements:} Fine-tuning RoBERTa and ViT-B/32 requires access to GPUs. Organisations without local compute capacity may need to rely on cloud infrastructure, which introduces cost considerations and additional data governance responsibilities.
+\textit{5) Resource Requirements:} Fine-tuning RoBERTa and ViT-B/16 requires access to GPUs. Organisations without local compute capacity may need to rely on cloud infrastructure, which introduces cost considerations and additional data governance responsibilities.
 
 \textit{6) Dataset Licensing Constraints:} Some phishing datasets used in this work (e.g., PhishIntention, Phishpedia) are licensed and cannot be redistributed. This constrains full replication by external researchers unless dataset access is independently obtained.
 
@@ -444,7 +444,7 @@ Although the proposed multimodal phishing detection system demonstrates strong e
     \item Random seed set: $\{42, 100, 150, 200, 250, 300, 350, 400, 450, 500\}$.
 \end{enumerate}
 
-Code, preprocessing pipelines, and evaluation scripts will be made available at \url{https://ludwig.guru/s/upon+acceptance} under MIT licence, with dataset access instructions provided in the README. Model weights are withheld per dual-use risk assessment but can be requested for academic research purposes via email to the corresponding author.
+Code, preprocessing pipelines, and evaluation scripts will be made available at \url{https://github.com/[redacted]/upon-acceptance} under MIT licence, with dataset access instructions provided in the README. Model weights are withheld per dual-use risk assessment but can be requested for academic research purposes via email to the corresponding author.
 
 \textit{5) Human Oversight and Organisational Impact:} While the system reduces the workload on Security Operations Centres (SOCs), it should not operate as a fully autonomous decision engine. High-risk alerts should be reviewed by human analysts to avoid misclassification of legitimate communications. Organisations must develop clear escalation pathways and governance processes surrounding automated email filtering.
 
@@ -465,7 +465,7 @@ Short-term priorities also include integrating Security Operations Centre (SOC) 
 
 \subsection{Cross-Lingual and Culturally-Aware Detection}
 
-Medium-term priorities focus on expanding support for multilingual and culturally diverse phishing datasets. Phishing techniques differ substantially across regions, and incorporating cross-lingual transformers and region-specific corpora may enhance global applicability and fairness.
+Medium-term priorities focus on expanding support for multilingual and culturally diverse phishing datasets. Phishing techniques vary across regions, and incorporating cross-lingual transformers and region-specific corpora may enhance global applicability and fairness.
 
 \subsection{Adversarially Robust Multimodal Transformers}
 
@@ -473,7 +473,7 @@ Medium-term priorities also include additional robustness using adversarial trai
 
 \subsection{Document-Forensics Transformers for Deepfake Invoices}
 
-Long-term objectives extend toward integrating document-forensics models (e.g., LayoutLMv3, DocFormer) to improve detection of synthetic invoices and identity documents. Combining document structure analysis with multimodal cross-modal attention may yield a more comprehensive forensic pipeline.
+Long-term objectives extend toward integrating document-forensics models (e.g., LayoutLMv3, DocFormer) to improve detection of synthetic invoices and identity documents. Combining document structure analysis with multimodal cross-modal attention may yield a stronger forensic pipeline.
 
 \subsection{Lightweight On-Device and Edge-Based Models}
 
@@ -499,15 +499,15 @@ The author would like to thank their supervisor for guidance on the experimental
 % ============================================================
 \section{Conclusion}
 
-This paper introduced a hybrid multimodal phishing detection architecture that fuses textual, visual, and metadata-based signals through late fusion enhanced by cross-modal attention mechanisms. By combining RoBERTa for semantic understanding, Vision Transformers for brand and layout verification, and XGBoost for forensic metadata analysis, the proposed system addresses the core challenge of modern phishing: semantic inconsistencies that evade unimodal detection pipelines.
+This paper introduced a hybrid multimodal phishing detection architecture that fuses textual, visual, and metadata-based signals through late fusion enhanced by cross-modal attention mechanisms. By combining RoBERTa for semantic understanding, Vision Transformers for brand and layout verification, and XGBoost for forensic metadata analysis, the system targets semantic inconsistencies across modalities that evade unimodal detection pipelines.
 
-Comprehensive evaluation across five benchmark datasets demonstrates the effectiveness of this approach, achieving an average F1-score of 0.992---a 4.1\% improvement over the strongest unimodal baseline. Statistical significance results ($p < 0.001$) and large effect sizes (Cohen's $d = 1.82$) confirm that these gains represent meaningful practical improvements. The system also exhibits resilience against emerging attack vectors, maintaining 85.7\% accuracy under MIM adversarial perturbations.
+Evaluation across five benchmark datasets demonstrates the effectiveness of this approach, achieving an average F1-score of 0.992---a 3.9\% improvement over the strongest unimodal baseline. Statistical significance results ($p < 0.001$) and large effect sizes (Cohen's $d = 1.82$) confirm that these gains represent meaningful practical improvements. The system also exhibits resilience against emerging attack vectors, maintaining 85.7\% accuracy under MIM adversarial perturbations.
 
 The system's multimodal architecture provides a foundation for detecting emerging threats such as LLM-generated phishing, though systematic evaluation of these attack vectors remains an important direction for future work.
 
 Ablation studies reveal that multimodal fusion is essential for achieving robust performance: text contributes primary semantic cues ($-7.9\%$ when removed), vision provides brand-level contextual grounding ($-3.6\%$), and metadata supplies temporal and infrastructural signals ($-2.9\%$). The cross-modal attention module delivers a further 1.9\% improvement by modelling fine-grained text--image alignment, enabling detection of brand-mismatch and mixed-modality attacks that commonly bypass traditional filters.
 
-With sub-100\,ms inference latency and a false-positive rate of only 0.9\%, the system satisfies operational requirements for enterprise-scale email gateways while offering interpretable attention visualisations to support SOC analyst decision-making. This work establishes multimodal fusion as a structural requirement for defending against sophisticated phishing campaigns. By reducing false positives while maintaining strong detection of LLM-generated and obfuscated attacks, the system contributes toward practical, operationally viable email security that protects users and organisations at scale.
+With sub-100\,ms inference latency and a false-positive rate of only 0.9\%, the system satisfies operational requirements for enterprise-scale email gateways while offering interpretable attention visualisations to support SOC analyst decision-making. These results indicate that multimodal fusion is important for defending against sophisticated phishing campaigns. By reducing false positives while maintaining strong detection of LLM-generated and obfuscated attacks, the system offers a practical path toward stronger email security at enterprise scale.
 
 % ============================================================
 % Bibliography

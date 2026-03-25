@@ -89,7 +89,7 @@ Recent work explores cross-modal attention mechanisms that explicitly model inte
 \begin{itemize}
     \item Phishpedia \cite{lin_2021_phishpedia} and PhishIntention \cite{liu_2022_phishintention} rely on reference-based matching, failing against zero-day brands absent from reference databases.
     \item KnowPhish \cite{li_2024_knowphish} uses LLMs for reasoning but lacks adversarial robustness evaluation---a critical gap given that attackers can craft adversarial examples.
-    \item PhishAgent \cite{ji_2025_phishagent} achieves 96.1\% accuracy but reports 2.4\% FPR (vs.\ our 0.9\%), making it impractical for enterprise deployment where false positives burden SOC teams.
+    \item PhishAgent \cite{cao_2025_phishagent} achieves 96.1\% accuracy but reports 2.4\% FPR (vs.\ our 0.9\%), making it impractical for enterprise deployment where false positives burden SOC teams.
     \item None of these systems evaluate emerging threats (LLM-generated phishing) or provide statistical significance tests.
 \end{itemize}
 
@@ -386,7 +386,7 @@ Table~\ref{tab:comparison} presents a quantitative comparison with leading multi
         \toprule
         System & Task & Year & Avg F1 & FPR & LLM Phish \\
         \midrule
-        PhishAgent \cite{ji_2025_phishagent}\textsuperscript{a} & Detection & 2025 & 0.961 & 2.4\% & 78.3\% \\
+        PhishAgent \cite{cao_2025_phishagent}\textsuperscript{a} & Detection & 2025 & 0.961 & 2.4\% & 78.3\% \\
         KnowPhish \cite{li_2024_knowphish}\textsuperscript{b} & Knowledge Base & 2024 & ---\textsuperscript{c} & 1.8\% & N/A \\
         Phishpedia \cite{lin_2021_phishpedia}\textsuperscript{d} & Identification & 2021 & 0.946 & 3.1\% & N/A \\
         Proposed Model & Detection & 2025 & 0.992 & 0.9\% & --- \\

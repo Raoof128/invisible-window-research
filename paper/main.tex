@@ -13,6 +13,7 @@
 \usepackage{cite}
 \usepackage{booktabs}
 \usepackage{url}
+\def\UrlBreaks{\do\/\do-\do_\do.\do=\do?\do&\do\#}
 \usetikzlibrary{shapes,arrows.meta,positioning,fit,backgrounds,calc}
 
 % Global listings configuration
@@ -28,6 +29,8 @@
   columns=fullflexible
 }
 
+\IEEEoverridecommandlockouts
+
 \begin{document}
 
 \title{The Invisible Window: Exploiting OS-Level Display Affinity to Bypass WebRTC Proctoring Systems}
@@ -37,7 +40,7 @@
 Macquarie University\\
 Sydney, Australia\\
 mohammadraouf.abedini@students.mq.edu.au\\
-https://raoufabedini.dev}
+\url{https://raoufabedini.dev}}
 \thanks{Research conducted using Claude Code powered by Claude Opus 4.6. PoC implementations empirically validated on Windows 10 Build 19045 and macOS 26.3.1.}}
 
 \maketitle
@@ -201,7 +204,7 @@ The attack requires no interaction with the proctoring system, no network manipu
 
 The attack is effective against:
 \begin{itemize}
-\item All browser-based proctoring systems that rely on \texttt{getDisplayMedia()} for screen capture.
+\item All browser-based proctoring systems that rely on \texttt{getDisplay\allowbreak{}Media()} for screen capture.
 \item All screen recording tools that use the standard OS capture pipeline.
 \end{itemize}
 
@@ -296,7 +299,7 @@ The complete implementation follows a standard Win32 window application pattern:
 \begin{enumerate}
 \item Register a window class with \texttt{RegisterClassEx}.
 \item Create a top-level window with \texttt{CreateWindowEx}, using \texttt{WS\_EX\_TOPMOST} to ensure the window stays above other windows (including the browser running the exam).
-\item Immediately call \texttt{SetWindowDisplayAffinity(hWnd, WDA\_EXCLUDEFROMCAPTURE)}.
+\item Immediately call \texttt{SetWindowDisplayAffinity(\allowbreak{}hWnd, WDA\_EXCLUDEFROMCAPTURE)}.
 \item Render the desired content (text notes, images, a web browser control) in the window's client area.
 \end{enumerate}
 
@@ -622,7 +625,9 @@ More broadly, this work reinforces the growing academic consensus~\cite{lee2022o
 
 We have followed coordinated vulnerability disclosure principles throughout this research and have notified affected vendors. We hope this work contributes to the development of more robust, privacy-respecting, and fundamentally sound approaches to maintaining academic integrity in online education.
 
+{\sloppy
 \bibliographystyle{IEEEtran}
 \bibliography{references}
+}
 
 \end{document}

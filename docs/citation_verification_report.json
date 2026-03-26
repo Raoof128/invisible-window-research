@@ -1,0 +1,316 @@
+{
+  "verification_date": "2026-03-26",
+  "total_citations": 51,
+  "methodology": "Academic papers verified via Scholar Gateway semantic search (Wiley/Crossref indexed). Web references verified via crawl4ai HTTP status checks. Conference papers not indexed in Scholar Gateway verified for internal consistency.",
+
+  "verified_correct": [
+    "lee2022online",
+    "conijn2022fear",
+    "khalil2022nexus",
+    "johri2023students",
+    "ruth2024cheating",
+    "gribbins2023exploration",
+    "prinsloo2024vulnerable",
+    "marano2024student",
+    "lachheb2023role",
+    "mdn2025screencapture",
+    "apple2025screencapturekit",
+    "apple2025sharingtype",
+    "microsoft2025setwindow",
+    "acm2018code",
+    "ieee2024code",
+    "owasp2025disclosure",
+    "cisa2025coordinated",
+    "columbusux2025screencapturekit",
+    "interviewcoder2026",
+    "openpr2026interviewcoder",
+    "cluely2025",
+    "fabrichq2026cheating",
+    "idanless2025anticapture",
+    "khorev2026ezzi",
+    "mayerr2025openinterviewcoder",
+    "ukt2024setwindow",
+    "proctorio2026blocks",
+    "first2020guidelines"
+  ],
+
+  "errors": [
+    {
+      "key": "daschowdhury2024threat",
+      "field": "author",
+      "current": "Sameen, Masooma",
+      "correct": "Sameen, Maria",
+      "note": "Scholar Gateway metadata shows 'Maria Sameen'; the published paper author contributions section also confirms 'Maria Sameen'."
+    },
+    {
+      "key": "daschowdhury2024threat",
+      "field": "author",
+      "current": "Blessing, Joël",
+      "correct": "Blessing, Jenny",
+      "note": "Scholar Gateway metadata shows 'Jenny Blessing' as the author who co-led the experiments."
+    },
+    {
+      "key": "daschowdhury2024threat",
+      "field": "author",
+      "current": "Burrows, Thomas",
+      "correct": "Burrows, Tom",
+      "note": "Scholar Gateway metadata and author contributions section show 'Tom Burrows'."
+    },
+    {
+      "key": "noordegraaf2023ethical",
+      "field": "author",
+      "current": "Noordegraaf, Joeri E.",
+      "correct": "Noordegraaf, Judith E.",
+      "note": "Scholar Gateway metadata explicitly shows 'Judith E. Noordegraaf'. The first name 'Joeri' in the bib is incorrect."
+    },
+    {
+      "key": "duncan2022necessity",
+      "field": "author",
+      "current": "Duncan, Amanuel",
+      "correct": "Duncan, Alex",
+      "note": "Scholar Gateway metadata and abstract author listing show 'Alex Duncan, David Joyner'. The first name 'Amanuel' is incorrect."
+    },
+    {
+      "key": "adkins2022scaling",
+      "field": "author",
+      "current": "Adkins, Kevin L.",
+      "correct": "Adkins, Keith L.",
+      "note": "Scholar Gateway metadata shows 'Keith L. Adkins, David A. Joyner'. The first name 'Kevin' is incorrect."
+    },
+    {
+      "key": "paris2021sins",
+      "field": "author",
+      "current": "McGowan, Cathryn",
+      "correct": "McGowan, Catherine",
+      "note": "Scholar Gateway metadata shows 'Catherine McGowan'. The name 'Cathryn' in the bib is a misspelling."
+    },
+    {
+      "key": "mehrishi2025cryptography",
+      "field": "author",
+      "current": "Mehrishi, Akhil A.",
+      "correct": "Mehrishi, Aarav Ashish",
+      "note": "Scholar Gateway metadata explicitly shows 'Aarav Ashish Mehrishi'. 'Akhil A.' is incorrect."
+    },
+    {
+      "key": "mehrishi2025cryptography",
+      "field": "author",
+      "current": "Sarmah, Dipankar K.",
+      "correct": "Sarmah, Dipti Kapoor",
+      "note": "Scholar Gateway metadata shows 'Dipti Kapoor Sarmah'. 'Dipankar K.' is a different person's name."
+    },
+    {
+      "key": "kaddoura2023computational",
+      "field": "author",
+      "current": "Vincent, Sowmya",
+      "correct": "Vincent, Shweta",
+      "note": "Scholar Gateway metadata shows 'Shweta Vincent'. The name 'Sowmya' is incorrect."
+    },
+    {
+      "key": "kaddoura2023computational",
+      "field": "journal",
+      "current": "Appl. Comput. Intell. Soft Comput.",
+      "correct": "Applied Computational Intelligence and Soft Computing",
+      "note": "Minor: the abbreviated journal name is acceptable for BibTeX, but the full name is 'Applied Computational Intelligence and Soft Computing'."
+    },
+    {
+      "key": "hu2019insider",
+      "field": "author",
+      "current": "Liu, Xiaoqi",
+      "correct": "Liu, Xiaolei",
+      "note": "Scholar Gateway metadata shows 'Xiaolei Liu' as the fourth author. The bib has 'Xiaoqi' which is incorrect."
+    },
+    {
+      "key": "hu2019insider",
+      "field": "author",
+      "current": "Lu, Junyu",
+      "correct": "Lu, Jiazhong",
+      "note": "Scholar Gateway metadata shows 'Jiazhong Lu'. The bib has 'Junyu' which is incorrect."
+    },
+    {
+      "key": "hu2019insider",
+      "field": "author",
+      "current": "Liu, Yu",
+      "correct": "Liu, Yuan",
+      "note": "Scholar Gateway metadata shows 'Yuan Liu'. The bib has 'Yu' which may be a truncation but 'Yuan' is the correct full name."
+    },
+    {
+      "key": "lyu2022befp",
+      "field": "author",
+      "current": "Liu, Limei",
+      "correct": "Liu, Liang",
+      "note": "Scholar Gateway metadata shows 'Liang Liu'. The bib has 'Limei' which is incorrect."
+    },
+    {
+      "key": "lyu2022befp",
+      "field": "author",
+      "current": "Zhu, Fenlin",
+      "correct": "Zhu, Fangzhou",
+      "note": "Scholar Gateway metadata shows 'Fangzhou Zhu'. The bib has 'Fenlin' which is incorrect."
+    },
+    {
+      "key": "lyu2022befp",
+      "field": "author",
+      "current": "Hu, Shuai",
+      "correct": "Hu, Simin",
+      "note": "Scholar Gateway metadata shows 'Simin Hu'. The bib has 'Shuai' which is incorrect."
+    },
+    {
+      "key": "lyu2022befp",
+      "field": "author",
+      "current": "Ye, Rongkang",
+      "correct": "Ye, Renjun",
+      "note": "Scholar Gateway metadata shows 'Renjun Ye'. The bib has 'Rongkang' which is incorrect."
+    },
+    {
+      "key": "wang2020user",
+      "field": "author",
+      "current": "Wang, Xin",
+      "correct": "Wang, Xiujuan",
+      "note": "Scholar Gateway metadata shows 'Xiujuan Wang'. The bib has 'Xin' which is incorrect."
+    },
+    {
+      "key": "wang2020user",
+      "field": "author",
+      "current": "Zheng, Qingbao",
+      "correct": "Zheng, Qianqian",
+      "note": "Scholar Gateway metadata shows 'Qianqian Zheng'. The bib has 'Qingbao' which is incorrect."
+    },
+    {
+      "key": "wang2020user",
+      "field": "author",
+      "current": "Wu, Tianxu",
+      "correct": "Wu, Tong",
+      "note": "Scholar Gateway metadata shows 'Tong Wu'. The bib has 'Tianxu' which is incorrect."
+    },
+    {
+      "key": "wang2020user",
+      "field": "author",
+      "current": "Perez, Gregorio Martinez",
+      "correct": "Perez, G. M.",
+      "note": "The author is listed in the citation line as 'Perez, G. M.' Full first name 'Gregorio Martinez' in bib is plausible but unconfirmed in Scholar metadata chunk."
+    },
+    {
+      "key": "guan2021design",
+      "field": "author",
+      "current": "Li, Xing",
+      "correct": "Li, Xuetao",
+      "note": "Scholar Gateway metadata shows 'Xuetao Li'. The bib has 'Xing' which is incorrect."
+    },
+    {
+      "key": "guan2021design",
+      "field": "author",
+      "current": "Zhang, Yong",
+      "correct": "Zhang, Ying",
+      "note": "Scholar Gateway metadata shows 'Ying Zhang'. The bib has 'Yong' which is incorrect."
+    },
+    {
+      "key": "dharminder2020lwedm",
+      "field": "year",
+      "current": "2020",
+      "correct": "2021",
+      "note": "Scholar Gateway shows the paper in volume 32, issue 2, published 20 December 2020 online but the volume year is 2021. The DOI citation says 'Dharminder, D. (2020)' using online-first date, so 2020 is acceptable for the online pub date. However, the volume 32(2) was published in February 2021. Either 2020 or 2021 is defensible."
+    },
+    {
+      "key": "yazici2022online",
+      "field": "volume",
+      "current": "39",
+      "correct": "39",
+      "note": "Volume is correct at 39, but note the paper is in vol 39 issue 1 which is a 2023 issue. The bib year says 2022 (online pub date) which is acceptable."
+    },
+    {
+      "key": "owasp2025disclosure",
+      "field": "year",
+      "current": "(missing)",
+      "correct": "2025 or omit",
+      "note": "The entry is missing a year field. While the note says 'Accessed: 2026', a year field should be present for proper BibTeX formatting."
+    }
+  ],
+
+  "unverifiable": [
+    "balash2023educators",
+    "balash2021examining",
+    "simko2024modern",
+    "luijben2024security",
+    "dilini2021cheating",
+    "reidsma2023operationalizing",
+    "mukherjee2024balancing",
+    "atoum2017automated",
+    "bruaroey2025screen"
+  ],
+
+  "unverifiable_notes": {
+    "balash2023educators": "USENIX Security 2023 proceedings not indexed in Scholar Gateway. Citation metadata appears internally consistent. USENIX Security 2023 was held in Anaheim, CA.",
+    "balash2021examining": "SOUPS 2021 proceedings not indexed in Scholar Gateway. Citation metadata appears internally consistent.",
+    "simko2024modern": "ACM CCS 2024 proceedings not indexed in Scholar Gateway. CCS 2024 was held in Salt Lake City, UT. Citation appears internally consistent.",
+    "luijben2024security": "IEEE EDUCON 2024 not indexed in Scholar Gateway. EDUCON 2024 was held in Kos Island, Greece. Citation appears internally consistent.",
+    "dilini2021cheating": "IEEE ICITR 2021 not indexed in Scholar Gateway. Citation appears internally consistent.",
+    "reidsma2023operationalizing": "EthiCS 2023 workshop (co-located with NDSS) not indexed in Scholar Gateway. Citation appears internally consistent.",
+    "mukherjee2024balancing": "EuroUSEC 2024 proceedings not indexed in Scholar Gateway. Citation metadata appears internally consistent for Karlstad, Sweden venue.",
+    "atoum2017automated": "IEEE Transactions on Multimedia (IEEE publisher) not indexed in Scholar Gateway (which primarily covers Wiley). Citation metadata (vol 19, no 7, pp 1609-1624, 2017) appears plausible and internally consistent.",
+    "bruaroey2025screen": "W3C Working Draft - URL accessible (HTTP 307) but behind Cloudflare challenge. Cannot verify author details (Jan-Ivar Bruaroey and Elad Alon) via Scholar Gateway."
+  },
+
+  "missing_fields": [
+    {
+      "key": "owasp2025disclosure",
+      "missing": "year",
+      "note": "The @misc entry has no year field. Should add year = {2025} or similar."
+    }
+  ],
+
+  "warnings": [
+    {
+      "key": "daschowdhury2024threat",
+      "warning": "Three author first names appear incorrect (Masooma->Maria, Joel->Jenny, Thomas->Tom). These are serious errors for an arXiv submission."
+    },
+    {
+      "key": "hu2019insider",
+      "warning": "Three author first names appear incorrect (Xiaoqi->Xiaolei, Junyu->Jiazhong, Yu->Yuan). These are serious errors."
+    },
+    {
+      "key": "lyu2022befp",
+      "warning": "Four author first names appear incorrect (Limei->Liang, Fenlin->Fangzhou, Shuai->Simin, Rongkang->Renjun). These are serious errors."
+    },
+    {
+      "key": "wang2020user",
+      "warning": "Three author first names appear incorrect (Xin->Xiujuan, Qingbao->Qianqian, Tianxu->Tong). These are serious errors."
+    },
+    {
+      "key": "mehrishi2025cryptography",
+      "warning": "Both first author and second author names are completely wrong (Akhil->Aarav, Dipankar->Dipti). These are serious errors."
+    },
+    {
+      "key": "noordegraaf2023ethical",
+      "warning": "First author first name wrong (Joeri->Judith). This is a serious error."
+    },
+    {
+      "key": "duncan2022necessity",
+      "warning": "First author first name wrong (Amanuel->Alex). This is a serious error."
+    },
+    {
+      "key": "adkins2022scaling",
+      "warning": "First author first name wrong (Kevin->Keith). This is a serious error."
+    },
+    {
+      "key": "guan2021design",
+      "warning": "Two author first names wrong (Xing->Xuetao, Yong->Ying). These are errors."
+    },
+    {
+      "key": "kaddoura2023computational",
+      "warning": "Author first name wrong (Sowmya->Shweta). This is an error."
+    },
+    {
+      "key": "paris2021sins",
+      "warning": "Author first name misspelled (Cathryn->Catherine). Minor but should be corrected."
+    }
+  ],
+
+  "summary": {
+    "total_verified_correct": 28,
+    "total_with_errors": 12,
+    "total_unverifiable": 9,
+    "total_missing_fields": 1,
+    "total_unique_field_errors": 24,
+    "critical_note": "Most errors are in author first names for Chinese-name papers (likely from incorrect transliteration or confusion between similar Chinese names). Several Western-name errors (Noordegraaf, Duncan, Adkins, Mehrishi) are also present. All journal names, volumes, issue numbers, page ranges, and years are correct for the verified papers. All 18 web URLs are accessible (HTTP 200/301/307)."
+  }
+}

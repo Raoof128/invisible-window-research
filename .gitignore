@@ -53,11 +53,18 @@ TEST/
 
 # LaTeX build artifacts
 paper/*.aux
-paper/*.bbl
 paper/*.blg
 paper/*.fdb_latexmk
 paper/*.fls
 paper/*.log
 paper/*.out
-paper/*.pdf
 paper/*.synctex.gz
+
+# Submission archives (regenerated)
+paper/*.tar.gz
+
+# Keep these in git:
+# paper/main.tex (source)
+# paper/main.bbl (compiled bibliography - needed for arXiv)
+# paper/main.pdf (compiled paper)
+# paper/references.bib (bibliography source)

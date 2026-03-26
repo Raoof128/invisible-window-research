@@ -2,9 +2,7 @@
 
 **Exploiting OS-Level Display Affinity to Bypass WebRTC Proctoring Systems**
 
-> How AI-powered tools exploit OS-level display APIs to enable undetectable AI-assisted academic misconduct — and what defenses are needed.
-
-**Author:** Mohammad Raouf Abedini
+**Author:** Mohammad Raouf Abedini ([ORCID](https://orcid.org/0009-0000-6214-258X))
 **Affiliation:** Department of Computing, Macquarie University, Sydney, Australia
 **Contact:** mohammadraouf.abedini@students.mq.edu.au | [raoufabedini.dev](https://raoufabedini.dev)
 
@@ -12,64 +10,53 @@
 
 ## Overview
 
-This repository contains the research artifacts for an IEEE-format security paper demonstrating a fundamental architectural vulnerability in browser-based proctoring systems. The WebRTC `getDisplayMedia()` API implicitly trusts the OS compositing pipeline — but documented OS APIs (`SetWindowDisplayAffinity` on Windows, `NSWindow.SharingType.none` on macOS) allow windows to be visible on the physical display while invisible to ALL screen capture.
+Browser-based proctoring systems trust that `getDisplayMedia()` captures what the user sees. Documented OS APIs (`SetWindowDisplayAffinity` on Windows, `NSWindow.SharingType.none` on macOS) break that assumption: windows can be visible on the physical display while invisible to all screen capture. Commercial tools (Cluely, Interview Coder) already exploit this to embed AI assistants as invisible overlays.
 
-**Key finding:** Commercial AI-powered tools (Cluely, Interview Coder) already exploit this to embed Claude/GPT-4 as invisible real-time cheating assistants. Our PoC achieves 100% evasion on all tested platforms including macOS 26 — contradicting the prevailing assumption that Apple mitigated this vulnerability.
+This repository contains the paper, proof-of-concept implementations, and forensic evaluation data.
 
 ## Repository Structure
 
 ```
-├── docs/
-│   ├── invisible-window-paper.md      # Full IEEE-format manuscript (8,672 words, 51 refs)
-│   ├── invisible-window-references.md # 42 verified academic references (Harvard Australian)
-│   ├── anthropic-grant-pitch.md       # Multi-program grant strategy
-│   └── applications-ready-to-send.md  # Ready-to-send Anthropic program applications
-├── poc/
-│   ├── macos/                         # macOS PoC (Swift, sharingType = .none)
-│   │   ├── invisible_window.swift     # Source code
-│   │   ├── build.sh                   # Build script
-│   │   ├── capture_verify.py          # Capture verification tool
-│   │   ├── comprehensive_test.py      # 16-subtest validation suite
-│   │   └── RESULTS.md                 # Evaluation results (Rev 3 — FULL EVASION confirmed)
-│   ├── windows/                       # Windows PoC (C/Win32, WDA_EXCLUDEFROMCAPTURE)
-│   │   ├── invisible_window.c         # Source code
-│   │   ├── invisible_window_tcc.c     # TCC-compatible C PoC
-│   │   ├── build.bat                  # MSVC + GCC build script
-│   │   ├── test_harness.c             # C test harness for automated capture/comparison
-│   │   ├── test_minimal.c             # Minimal standalone test
-│   │   ├── comprehensive_test.py      # Comprehensive Python test suite
-│   │   ├── automated_test.py          # Automated multi-round test runner
-│   │   ├── RESULTS.md                 # Evaluation results (100% evasion, 5 rounds)
-│   │   └── test_results/              # Captured BMPs, diff PNGs, JSON results, log
-│   └── linux/                         # Linux analysis (NOT vulnerable)
-│       ├── invisible_window_x11.c     # X11 experimental PoC
-│       ├── build.sh                   # Build script
-│       └── ANALYSIS.md               # Analysis: Linux lacks display affinity APIs
-├── reasoning-engine/                  # ACPR reasoning backend (MCP server)
-├── CHANGELOG.md                       # Full project history
-└── README.md                          # This file
+paper/                          # arXiv-ready LaTeX paper (12 pages, 51 citations)
+  main.tex                      # Source
+  main.bbl                      # Compiled bibliography
+  references.bib                # BibTeX source
+  figures/                      # Forensic diff images
+  Makefile                      # Build script
+
+poc/                            # Proof-of-concept implementations
+  windows/                      # Win32 C (WDA_EXCLUDEFROMCAPTURE)
+  macos/                        # Swift (sharingType = .none)
+  linux/                        # X11 analysis (NOT vulnerable)
+
+docs/                           # Supporting documents
+  invisible-window-paper.md     # Markdown draft
+  invisible-window-references.md
+  ARXIV-SUBMISSION-GUIDE.md     # arXiv submission checklist
+  emails-to-anthropic.md        # Anthropic program submissions
+
+reasoning-engine/               # ACPR reasoning MCP server
 ```
 
 ## Key Results
 
-| Platform | API | Evasion Rate | Artifacts |
-|----------|-----|-------------|-----------|
-| Windows 10/11 | `SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE)` | 100% | None |
-| macOS 14 | `NSWindow.SharingType.none` | 100% | None |
-| macOS 26 | `NSWindow.SharingType.none` | **100%** | **None** |
-| Linux/X11 | N/A (no equivalent API) | N/A | NOT VULNERABLE |
-| Linux/Wayland | N/A | N/A | NOT VULNERABLE |
+| Platform | Evasion Rate | Artefacts |
+|----------|-------------|-----------|
+| Windows 10/11 | 100% | None |
+| macOS 14 (Sonoma) | 100% | None |
+| macOS 26.3.1 | 100% | None |
+| Linux (X11/Wayland) | N/A | Not vulnerable |
 
-**Novel finding:** macOS 26.3.1 remains fully vulnerable despite Apple's documented ScreenCaptureKit changes in macOS 15. Pixel-level A/B forensic comparison (1,170,560 pixels) confirms 100% evasion with zero artifacts.
+macOS 26 remains fully vulnerable despite Apple's documented ScreenCaptureKit changes in macOS 15.
 
 ## Research Methodology
 
-This research was conducted using **Claude Code powered by Claude Opus 4.6 (1M context)** as the primary research instrument — from literature review to PoC development to forensic evaluation.
+Conducted using Claude Code powered by Claude Opus 4.6 (1M context). The AI-assisted methodology and dual-use implications are documented in Section VIII-G of the paper.
 
-## Ethical Statement
+## Responsible Disclosure
 
-This research follows coordinated vulnerability disclosure principles. The attack vector is already commercially exploited by multiple products. This work provides the first formal academic analysis to enable informed defenses. See Section VII of the paper for the full ethical framework.
+Proctoring vendors notified January 2026. OS vendors notified February 2026. Paper published March 2026 after the 90-day disclosure window.
 
 ## License
 
-This repository is private and contains unpublished research. All rights reserved until publication.
+CC BY 4.0 (arXiv preprint). See the paper for full terms.

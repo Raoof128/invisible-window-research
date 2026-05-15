@@ -1,5 +1,7 @@
 # The Invisible Window
 
+[![DOI](https://zenodo.org/badge/1190277876.svg)](https://doi.org/10.5281/zenodo.20195134)
+
 **Exploiting OS-Level Display Affinity to Bypass WebRTC Proctoring Systems**
 
 **Author:** Mohammad Raouf Abedini ([ORCID](https://orcid.org/0009-0000-6214-258X))

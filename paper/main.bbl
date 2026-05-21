@@ -178,6 +178,19 @@ L.~Simko, A.~Hutchinson, A.~Isaac, E.~Fries, M.~Sherr, and A.~J. Aviv,
   for online exam proctoring evasion},'' in \emph{Proc. 2024 ACM SIGSAC Conf.
   Computer and Communications Security (CCS '24)}, Salt Lake City, UT, 2024.
 
+\bibitem{apple2026response}
+{Apple Product Security}, ``{Response to Report OE11053003674113:
+  NSWindow.sharingType = .none hides visible windows from
+  ScreenCaptureKit/WebRTC capture},'' Apple Security Research Portal, private
+  communication, Mar. 2026, formal vendor response to coordinated disclosure.
+  On file with the author.
+
+\bibitem{msrc2026response}
+{Microsoft Security Response Center}, ``{RE: 111448 CRM:0034000320 --- Response
+  to SetWindowDisplayAffinity proctoring bypass report},'' Microsoft Security
+  Response Center, private communication, Apr. 2026, formal vendor response to
+  coordinated disclosure. On file with the author.
+
 \bibitem{interviewcoder2026}
 {Interview Coder}, ``{Interview Coder --- AI Interview Assistant for Technical
   Interviews},'' \url{https://www.interviewcoder.co/}, 2026, accessed: 2026.

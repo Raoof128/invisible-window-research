@@ -553,6 +553,37 @@ This research follows coordinated vulnerability disclosure principles~\cite{acm2
 
 The APIs exploited are publicly documented and already widely shared in online evasion communities~\cite{simko2024modern}; withholding this research would not prevent exploitation but would delay informed countermeasures.
 
+\subsection{Vendor Responses and Security Boundary Classification}
+
+Following coordinated disclosure to OS vendors, both Apple Product Security and the Microsoft Security Response Center (MSRC) responded formally. Table~\ref{tab:disclosure} summarises the disclosure timeline and outcomes across all contacted parties.
+
+\begin{table}[t]
+\centering
+\caption{Coordinated Disclosure Summary}
+\label{tab:disclosure}
+\begin{tabular}{p{1.4cm}p{1.0cm}p{1.1cm}p{3.7cm}}
+\toprule
+\textbf{Party} & \textbf{Notified} & \textbf{Response} & \textbf{Classification} \\
+\midrule
+Apple Product Security & Mar.\ 2026 & Mar.\ 2026 & Consistent with documented functionality; not a security issue \\[4pt]
+Microsoft MSRC & Feb.\ 2026 & Apr.\ 2026 & By-design behaviour; not a security vulnerability \\[4pt]
+Proctorio & Jan.\ 2026 & Ongoing & Acknowledged; implementing behavioural blocks \\[4pt]
+ProctorU   & Jan.\ 2026 & ---      & No response at time of writing \\[4pt]
+Respondus  & Jan.\ 2026 & ---      & No response at time of writing \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Apple Product Security} responded that the behaviour is ``consistent with Apple's documented functionality for \texttt{NSWindow\allowbreak{}.SharingType.none},'' describing it as a legacy constant that ``can cause content to not be available in certain sharing situations.'' Apple's own developer documentation explicitly advises: ``Don't use this value to hide or omit content from being captured''~\cite{apple2025sharingtype}. This creates a security-relevant tension: Apple documents that \texttt{NSWindow.SharingType.none} should not be used to hide or omit content from capture, yet the behaviour remains available and effective on macOS~26.3.1 in downstream capture-dependent systems. Apple further observed that ``the \texttt{kCGWindowSharingState} property remains readable through the window list API, meaning proctoring or monitoring software can readily identify windows configured with this setting.'' On this basis, Apple classified the reported behaviour as not bypassing an Apple security boundary and therefore not a security issue~\cite{apple2026response}.
+
+\textbf{Microsoft MSRC} similarly classified the \texttt{SetWindowDisplayAffinity} behaviour as by-design rather than a security vulnerability, stating that the function ``is not a security feature or an implementation of Digital Rights Management (DRM)'' and offers ``no guarantee'' of strict content protection, citing the example of a photograph taken of the screen~\cite{msrc2026response,microsoft2025setwindow}.
+
+We do not dispute either vendor's classification. \textit{We therefore do not frame Invisible Window as an operating-system implementation bug.} Instead, we classify it as a security-relevant downstream design vulnerability in \emph{capture-dependent systems}. The issue is a trust mismatch: browser-based proctoring systems assume that captured frames faithfully represent the physical display, while OS vendors document---and Apple explicitly warns against---behaviours that allow visible windows to be omitted from capture output. Apple's classification is internally consistent: the API behaviour is documented, and the security boundary Apple is concerned with (OS integrity) is unbroken. The security boundary that \textit{is} broken is the one between the display compositor and the capture consumer---a boundary neither OS vendor designed or warranted.
+
+Apple's counterpoint regarding \texttt{kCGWindowSharingState} detectability warrants a direct response. Apple is correct that native window enumeration can read \texttt{kCGWindowSharingState} to identify windows configured with \texttt{.none} sharing type. However, this detection requires a native process with access to the window list API. The browser sandbox has no access to \texttt{CGWindowListCopyWindowInfo}; only a native agent running outside the browser can perform this check. This is precisely the constraint that makes browser-only proctoring systems vulnerable: the detection mechanism that would close the gap is architecturally unavailable to them. This distinction reinforces the paper's central claim that the browser capture layer is not a display-integrity boundary, and that the countermeasures which are effective (Section~VI-A) require the native privileges that browser-only systems lack.
+
+This framing yields a clean thesis statement: \textit{Invisible Window is not an Apple or Microsoft zero-day. It is a downstream display-fidelity failure caused when capture-dependent systems treat OS screen-capture output as equivalent to the physical display.}
+
 \subsection{Dual-Use Considerations}
 
 We acknowledge that this paper describes a technique that could be misused. Publication is justified because:

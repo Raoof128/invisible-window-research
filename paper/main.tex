@@ -11,6 +11,7 @@
 \usepackage{amsmath,amssymb}
 \usepackage{cite}
 \usepackage{booktabs}
+\usepackage{tabularx}
 \usepackage{url}
 \usepackage{orcidlink}
 \usepackage{hyperref}
@@ -561,17 +562,19 @@ Following coordinated disclosure to OS vendors, both Apple Product Security and 
 \centering
 \caption{Coordinated Disclosure Summary}
 \label{tab:disclosure}
-\begin{tabular}{p{1.4cm}p{1.0cm}p{1.1cm}p{3.7cm}}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{@{}lllp{4.2cm}@{}}
 \toprule
 \textbf{Party} & \textbf{Notified} & \textbf{Response} & \textbf{Classification} \\
 \midrule
-Apple Product Security & Mar.\ 2026 & Mar.\ 2026 & Consistent with documented functionality; not a security issue \\[4pt]
-Microsoft MSRC & Feb.\ 2026 & Apr.\ 2026 & By-design behaviour; not a security vulnerability \\[4pt]
-Proctorio & Jan.\ 2026 & Ongoing & Acknowledged; implementing behavioural blocks \\[4pt]
-ProctorU   & Jan.\ 2026 & ---      & No response at time of writing \\[4pt]
-Respondus  & Jan.\ 2026 & ---      & No response at time of writing \\
+Apple Product Security & Mar.\ 2026 & Mar.\ 2026 & Consistent with documented functionality; not a security issue \\[3pt]
+Microsoft MSRC         & Feb.\ 2026 & Apr.\ 2026 & By-design behaviour; not a security vulnerability \\[3pt]
+Proctorio              & Jan.\ 2026 & Ongoing   & Acknowledged; implementing behavioural blocks \\[3pt]
+ProctorU               & Jan.\ 2026 & ---       & No response at time of writing \\[3pt]
+Respondus              & Jan.\ 2026 & ---       & No response at time of writing \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 \textbf{Apple Product Security} responded that the behaviour is ``consistent with Apple's documented functionality for \texttt{NSWindow\allowbreak{}.SharingType.none},'' describing it as a legacy constant that ``can cause content to not be available in certain sharing situations.'' Apple's own developer documentation explicitly advises: ``Don't use this value to hide or omit content from being captured''~\cite{apple2025sharingtype}. This creates a security-relevant tension: Apple documents that \texttt{NSWindow.SharingType.none} should not be used to hide or omit content from capture, yet the behaviour remains available and effective on macOS~26.3.1 in downstream capture-dependent systems. Apple further observed that ``the \texttt{kCGWindowSharingState} property remains readable through the window list API, meaning proctoring or monitoring software can readily identify windows configured with this setting.'' On this basis, Apple classified the reported behaviour as not bypassing an Apple security boundary and therefore not a security issue~\cite{apple2026response}.

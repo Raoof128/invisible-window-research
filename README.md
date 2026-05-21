@@ -75,15 +75,10 @@ This paper does not dispute either classification. The vulnerability is framed a
 
 ## Responsible Disclosure
 
-| Party | Notified | Response | Outcome |
-|-------|----------|----------|---------|
-| Proctorio | Jan 2026 | Ongoing | Acknowledged; implementing behavioural blocks |
-| ProctorU | Jan 2026 | — | No response at time of writing |
-| Respondus | Jan 2026 | — | No response at time of writing |
-| Apple Product Security | Mar 2026 | Mar 2026 | By-design; not a security issue |
-| Microsoft MSRC | Feb 2026 | Apr 2026 | By-design; not a security vulnerability |
-
-Paper published after the 90-day vendor disclosure window.
+| Party | Notified | Response | Classification |
+|-------|----------|----------|----------------|
+| Apple Product Security | Mar 2026 | Mar 2026 | Consistent with documented functionality; not a security issue |
+| Microsoft MSRC | Feb 2026 | Apr 2026 | By-design behaviour; not a security vulnerability |
 
 ---
 

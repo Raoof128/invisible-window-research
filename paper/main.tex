@@ -546,17 +546,16 @@ This research follows coordinated vulnerability disclosure principles~\cite{acm2
 
 \begin{enumerate}
 \item \textbf{Discovery and verification} (January 2026): The display affinity bypass was identified and verified in a controlled laboratory environment on Windows 10 and macOS~14.
-\item \textbf{Vendor notification} (January 2026): Affected proctoring vendors (Proctorio, ProctorU, Respondus) were notified with a detailed technical report and a 90-day disclosure window. At the time of writing, no vendor has confirmed deployment of a mitigation targeting the display affinity attack vector specifically.
 \item \textbf{macOS 26 verification} (February 2026): Extended testing to macOS~26.3.1, confirming that \texttt{sharingType = .none} remains effective despite Apple's documented ScreenCaptureKit changes.
-\item \textbf{OS vendor communication} (February 2026): Microsoft and Apple were informed of the security implications of their display affinity APIs in the proctoring context via their respective security reporting channels.
-\item \textbf{Public disclosure} (March 2026): This paper is published after the 90-day disclosure window, allowing vendors time to develop and deploy mitigations.
+\item \textbf{OS vendor communication} (February--March 2026): Microsoft and Apple were informed of the security implications of their display affinity APIs in the proctoring context via their respective security reporting channels (Microsoft MSRC, Apple Security Research portal).
+\item \textbf{Public disclosure} (May 2026): This paper is published following OS vendor responses, with formal vendor classifications documented in Section~VII-B.
 \end{enumerate}
 
 The APIs exploited are publicly documented and already widely shared in online evasion communities~\cite{simko2024modern}; withholding this research would not prevent exploitation but would delay informed countermeasures.
 
 \subsection{Vendor Responses and Security Boundary Classification}
 
-Following coordinated disclosure to OS vendors, both Apple Product Security and the Microsoft Security Response Center (MSRC) responded formally. Table~\ref{tab:disclosure} summarises the disclosure timeline and outcomes across all contacted parties.
+Following coordinated disclosure to OS vendors, both Apple Product Security and the Microsoft Security Response Center (MSRC) responded formally. Table~\ref{tab:disclosure} summarises the disclosure outcomes for both contacted OS vendors.
 
 \begin{table}[t]
 \centering
@@ -568,10 +567,7 @@ Following coordinated disclosure to OS vendors, both Apple Product Security and 
 \textbf{Party} & \textbf{Notified} & \textbf{Response} & \textbf{Classification} \\
 \midrule
 Apple Product Security & Mar.\ 2026 & Mar.\ 2026 & Consistent with documented functionality; not a security issue \\[3pt]
-Microsoft MSRC         & Feb.\ 2026 & Apr.\ 2026 & By-design behaviour; not a security vulnerability \\[3pt]
-Proctorio              & Jan.\ 2026 & Ongoing   & Acknowledged; implementing behavioural blocks \\[3pt]
-ProctorU               & Jan.\ 2026 & ---       & No response at time of writing \\[3pt]
-Respondus              & Jan.\ 2026 & ---       & No response at time of writing \\
+Microsoft MSRC         & Feb.\ 2026 & Apr.\ 2026 & By-design behaviour; not a security vulnerability \\
 \bottomrule
 \end{tabular}%
 }
@@ -672,7 +668,7 @@ We have proposed and evaluated countermeasures ranging from immediately deployab
 
 More broadly, this work reinforces the growing academic consensus~\cite{lee2022online,khalil2022nexus,duncan2022necessity,paris2021sins} that screen-based surveillance is not a sustainable foundation for academic integrity. As evasion techniques grow more sophisticated and less detectable, the arms race between proctoring systems and bypass methods favours the attacker. Institutions would be better served by investing in assessment designs that are inherently resistant to cheating---open-book examinations, authentic assessments, oral defences---rather than in ever-more-invasive monitoring of students' screens.
 
-We have followed coordinated vulnerability disclosure principles throughout this research and have notified affected vendors. We hope this work contributes to the development of more robust, privacy-respecting, and sound approaches to maintaining academic integrity in online education.
+We have followed coordinated vulnerability disclosure principles throughout this research and have notified the relevant OS vendors. We hope this work contributes to the development of more robust, privacy-respecting, and sound approaches to maintaining academic integrity in online education.
 
 \section*{Acknowledgements}
 

@@ -1,6 +1,6 @@
 # The Invisible Window
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20376495.svg)](https://doi.org/10.5281/zenodo.20376495)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20376495.svg)](https://doi.org/10.5281/zenodo.20376495) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20195135.svg)](https://doi.org/10.5281/zenodo.20195135)
 
 **Exploiting OS-Level Display Affinity to Bypass WebRTC Proctoring Systems**
 

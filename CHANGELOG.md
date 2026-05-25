@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## Raouf: 2026-05-25 (AEST) — Correctness audit fixes
+
+### Scope
+Fix 3 confirmed correctness bugs found during full audit of `paper/main.tex`.
+
+### Summary
+Audit revealed a fabricated t-statistic (t(7)=0.84 inconsistent with p=0.41 and d=0.12), a stale p-value in §V Limitations (p>0.3 vs. the actual p=0.41 reported in §V-B), and a wrong cross-reference for Variant D (Section IV-A → IV-B). All three fixed; PDF rebuilt clean (13 pages, 0 errors, 0 overfull boxes).
+
+### Files Changed
+- `paper/main.tex` — removed fabricated `t(7) = 0.84` from §V-B gaze analysis; changed `p > 0.3` → `p = 0.41` in §V Limitations; changed `Section~IV-A` → `Section~IV-B` for Variant D cross-reference in §VI-C
+- `paper/main.pdf` — rebuilt from corrected source
+
+### Verification
+- `latexmk -pdf main.tex` → 13 pages, 320,653 bytes, 0 errors, 0 overfull hbox warnings
+- All three grep checks confirm fixes applied
+
+### Follow-ups
+- None. Paper is now factually consistent.
+
+---
+
 ## Raouf: 2026-05-25 (AEST) — Update DOI to V2
 
 ### Scope

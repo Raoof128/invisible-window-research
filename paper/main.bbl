@@ -21,12 +21,6 @@
 \providecommand{\BIBdecl}{\relax}
 \BIBdecl
 
-\bibitem{fabrichq2026cheating}
-{FabricHQ}, ``{Interview Cheating in 2026: The Rise of AI Tools Like Cluely and
-  Interview Coder},''
-  \url{https://www.fabrichq.ai/blogs/interview-cheating-in-2026-the-rise-of-ai-tools-like-cluely-and-interview-coder},
-  2026, accessed: 2026.
-
 \bibitem{lee2022online}
 K.~Lee and M.~Fanguy, ``{Online exam proctoring technologies: Educational
   innovation or deterioration?}'' \emph{British J. Educ. Technol.}, vol.~53,
@@ -221,6 +215,12 @@ D.~Khorev, ``{Building Ezzi: My Journey Creating an Invisible Tech Interview
 J.~Mayerr, ``{openinterviewcoder: An undetectable AI assistant for coding
   interviews},'' \url{https://github.com/JoshMayerr/openinterviewcoder}, 2025,
   gitHub. Accessed: 2026.
+
+\bibitem{fabrichq2026cheating}
+{FabricHQ}, ``{Interview Cheating in 2026: The Rise of AI Tools Like Cluely and
+  Interview Coder},''
+  \url{https://www.fabrichq.ai/blogs/interview-cheating-in-2026-the-rise-of-ai-tools-like-cluely-and-interview-coder},
+  2026, accessed: 2026.
 
 \bibitem{duncan2022necessity}
 A.~Duncan and D.~Joyner, ``{On the necessity (or lack thereof) of digital

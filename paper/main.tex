@@ -52,12 +52,12 @@ Macquarie University\\
 Sydney, Australia\\
 mohammadraouf.abedini@students.mq.edu.au\\
 \url{https://raoufabedini.dev}}
-\thanks{LLM-assisted research methodology disclosed in Section~VIII-G. Preprint: \url{https://zenodo.org/records/20319832}. DOI: \href{https://doi.org/10.5281/zenodo.20319832}{10.5281/zenodo.20319832}.}}
+\thanks{Preprint: \url{https://zenodo.org/records/20319832}. DOI: \href{https://doi.org/10.5281/zenodo.20319832}{10.5281/zenodo.20319832}. LLM-assisted research methodology disclosed in Section~IX.}}
 
 \maketitle
 
 \begin{abstract}
-Remote proctoring systems are the primary technical defence against academic misconduct in online education. These systems rely on the WebRTC \texttt{getDisplayMedia()} API to monitor test-takers' screens, operating on the implicit assumption that the captured frame faithfully represents the physical display. We demonstrate that this assumption is systematically violated by a new class of AI-powered cheating tools (including commercially available products such as Interview Coder and Cluely) that embed large language models (GPT-4, Claude) inside operating system windows rendered invisible to all screen capture mechanisms. These tools exploit documented OS-level display affinity APIs (\texttt{SetWindowDisplayAffinity} on Windows, \texttt{NSWindow.SharingType.none} on macOS) to create real-time AI assistants that are fully visible to the test-taker but produce zero pixels in proctoring capture output. Our proof-of-concept demonstrates 100\% evasion across all tested platforms, including macOS~26 where the attack was previously assumed mitigated, with zero visual artefacts and no behavioural anomalies exceeding detection thresholds. Industry surveys report that up to 35\% of candidates in technical assessments show signs of AI-assisted cheating via such tools~\cite{fabrichq2026cheating}, yet to our knowledge no formal security analysis of this attack class exists in the academic literature. We propose countermeasures including display integrity attestation and API-level monitoring, assess their limitations, and argue that the structural vulnerability of capture-based proctoring demands a fundamental rethinking of assessment design in the age of accessible AI. This work follows coordinated vulnerability disclosure principles and is positioned at the intersection of AI security, AI-enabled misuse, and the societal impacts of generative AI on educational institutions.
+Remote proctoring systems are the primary technical defence against academic misconduct in online education. These systems rely on the WebRTC \texttt{getDisplayMedia()} API, operating on the implicit assumption that the captured frame faithfully represents the physical display. We demonstrate that this assumption is systematically violated by a class of AI-powered cheating tools that embed large language models inside operating system windows rendered invisible to all screen capture mechanisms. These tools exploit documented OS-level display affinity APIs---\texttt{SetWindowDisplayAffinity} on Windows and \texttt{NSWindow.SharingType.none} on macOS---to create real-time AI assistants that are fully visible to the test-taker yet produce zero pixels in proctoring capture output. Our proof-of-concept achieves 100\% evasion across all tested platforms, including macOS~26 where the attack was previously assumed mitigated, with zero visual artefacts and no detectable behavioural anomalies in our controlled evaluation. Industry surveys report that up to 35\% of candidates show signs of AI-assisted cheating via such tools, yet to our knowledge no formal security analysis of this attack class exists in the academic literature. We formalise the trust boundary violation between the W3C Screen Capture API and the OS compositing pipeline, propose countermeasures including display integrity attestation and API-level monitoring, and argue that the structural vulnerability of capture-based proctoring demands a fundamental rethinking of assessment design in the age of accessible AI. This work follows coordinated vulnerability disclosure principles.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -98,7 +98,7 @@ This paper makes the following contributions:
 \begin{itemize}
 \item \textbf{Vulnerability identification}: We identify and formalise the trust boundary violation between the W3C Screen Capture API and the OS compositing pipeline, demonstrating that \texttt{getDisplayMedia()} cannot guarantee display fidelity.
 
-\item \textbf{Proof-of-concept attacks}: We present working implementations on Windows 10/11 and macOS that achieve complete screen capture evasion using only documented OS APIs, with empirical verification on macOS through version~26.
+\item \textbf{Proof-of-concept attacks}: We present working implementations on Windows 10/11 and macOS that achieve complete screen capture evasion using only documented OS APIs, with empirical verification across macOS versions~14--26.
 
 \item \textbf{Systematic evaluation}: We evaluate the attack against representative browser-based proctoring configurations and analyse which existing detection mechanisms (gaze tracking, mouse dynamics, process enumeration) can and cannot detect it.
 
@@ -107,7 +107,7 @@ This paper makes the following contributions:
 \item \textbf{Responsible disclosure}: We frame this work within established ethical guidelines for security research~\cite{acm2018code,ieee2024code,owasp2025disclosure,first2020guidelines,cisa2025coordinated} and discuss the coordinated disclosure process followed.
 \end{itemize}
 
-The remainder of this paper is organised as follows. Section~II provides background on the WebRTC Screen Capture API, OS-level display affinity mechanisms, and the architecture of browser-based proctoring systems. Section~III formalises the threat model. Section~IV details the attack design and implementation. Section~V presents the evaluation methodology and results. Section~VI analyses countermeasures. Section~VII discusses ethical considerations and responsible disclosure. Section~VIII surveys related work. Section~IX concludes.
+The remainder of this paper is organised as follows. Section~II provides background on the WebRTC Screen Capture API, OS-level display affinity mechanisms, and the architecture of browser-based proctoring systems. Section~III formalises the threat model. Section~IV details the attack design and implementation. Section~V presents the evaluation methodology and results. Section~VI analyses countermeasures. Section~VII discusses ethical considerations and responsible disclosure. Section~VIII surveys related work. Section~IX examines AI-assisted research methodology as an empirical dual-use capability case study. Section~X concludes.
 
 %% ===================================================================
 %% SECTION II: BACKGROUND
@@ -144,7 +144,7 @@ The function requires only that the calling process owns the target window. No e
 
 On macOS, the \texttt{NSWindow} class provides a \texttt{sharingType} property~\cite{apple2025sharingtype} that controls whether a window's content can be read by other processes. Setting \texttt{sharingType} to \texttt{.none} prevents legacy CoreGraphics-based screen capture APIs from accessing the window content. On macOS versions prior to~15, this effectively hides the window from \texttt{getDisplayMedia()} when Chrome or another browser uses CoreGraphics for screen capture.
 
-Apple's ScreenCaptureKit framework~\cite{apple2025screencapturekit}, introduced in macOS~12.3, provides a more modern capture API with explicit support for content filtering through \texttt{SCContentFilter}. This framework allows capture clients to include or exclude specific windows and applications, and it captures content by reading the composited framebuffer directly.
+Apple's ScreenCaptureKit framework~\cite{apple2025screencapturekit}, introduced in macOS~12.3, provides a more modern capture API with explicit support for content filtering through \texttt{SCContentFilter}. This framework allows capture clients to include or exclude specific windows and applications, and it captures content by reading the composited framebuffer directly. However, invoking ScreenCaptureKit requires a native process with explicit Screen Recording permission---a constraint that makes this capture path unavailable to browser-only proctoring systems.
 
 Apple reportedly changed ScreenCaptureKit in macOS~15 (Sequoia) to capture all visible content regardless of \texttt{sharingType} settings~\cite{columbusux2025screencapturekit}, leading to the widespread assumption that this attack vector was mitigated. Our empirical evaluation (Section~V) demonstrates otherwise.
 
@@ -220,7 +220,7 @@ The attack is effective against:
 The attack is \textit{not} effective against:
 \begin{itemize}
 \item Proctoring systems with kernel-level agents that enumerate windows and check display affinity flags directly.
-\item Physical observation (the window is visible on the physical monitor).
+\item Physical observation: the window is fully visible on the physical monitor, so any co-located invigilator would see it. The attack is effective only against \textit{remote} proctoring.
 \item Hardware-based capture devices (e.g., HDMI capture cards) that read the display output signal directly.
 \end{itemize}
 
@@ -299,7 +299,7 @@ The Windows implementation uses the \texttt{SetWindowDisplayAffinity} Win32 API 
 // After creating the window with CreateWindowEx()
 BOOL result = SetWindowDisplayAffinity(
     hWnd,                        // Handle to the window
-    WDA_EXCLUDEFROMCAPTURE       // 0x00000011
+    WDA_EXCLUDEFROMCAPTURE  // 0x00000011 (= 17 decimal)
 );
 \end{lstlisting}
 
@@ -320,7 +320,9 @@ The \texttt{WS\_EX\_TOPMOST} extended style ensures the invisible window floats 
 
 \textbf{Variant~C --- Communication channel}: The window hosts a messaging application or live video feed, enabling real-time communication with an external accomplice.
 
-In all variants, the window is fully interactive: the test-taker can scroll, click links, type queries, and resize the window. All interactions occur within a window that does not exist in the proctoring system's view of the screen.
+\textbf{Variant~D --- Click-through overlay}: The window is configured as input-transparent using \texttt{WS\_EX\_TRANSPARENT} (Windows) or \texttt{ignoresMouseEvents = true} (macOS). Mouse clicks pass through to the exam browser beneath, preventing any keyboard focus transfer to the hidden application and eliminating the focus-change detection vector discussed in Section~VI-C.
+
+In Variants~A--C, the window is fully interactive: the test-taker can scroll, click links, type queries, and resize the window, while the content remains absent from all capture output. Variant~D restricts direct input in exchange for producing no focus events detectable by the exam page.
 
 \textbf{System Requirements}: Windows 10 Version 2004 (May 2020 Update) or later. No administrator privileges. No special runtime dependencies. The compiled binary is approximately 15~KB.
 
@@ -341,7 +343,7 @@ window.level = .floating    // Stay above other windows
 window.makeKeyAndOrderFront(nil)
 \end{lstlisting}
 
-Setting \texttt{sharingType} to \texttt{.none} instructs the window server to exclude this window from all screen capture operations that respect the sharing type flag. On macOS 14--26, this includes both legacy CoreGraphics capture and the system-level capture APIs that underlie ScreenCaptureKit-based tools.
+Setting \texttt{sharingType} to \texttt{.none} instructs the window server to exclude this window from all screen capture operations that respect the sharing type flag. On macOS 14--26, this includes both legacy CoreGraphics capture and the system-level capture APIs that underlie ScreenCaptureKit-based tools, as our cross-platform evaluation (Section~V) confirms.
 
 \textbf{macOS 15+ Behaviour}: Apple's documentation and community reports~\cite{columbusux2025screencapturekit} indicate that ScreenCaptureKit in macOS~15+ was changed to capture all visible content regardless of \texttt{sharingType} settings. Our empirical testing on macOS~26.3.1, however, reveals that this mitigation is incomplete: \texttt{sharingType = .none} continues to fully exclude window content from all tested capture APIs. Pixel-level forensic verification and analysis of this finding are presented in Section~V.
 
@@ -415,7 +417,7 @@ macOS 26.3.1 & \texttt{CGWindowList...}  & 100\% & None$^{*}$ \\
 \end{tabular}
 \end{table}
 
-As shown in Table~\ref{tab:evasion}, the attack achieved a 100\% evasion rate on all tested platforms. The captured frames showed the desktop or exam interface as if the invisible window did not exist. No visual artefacts (black rectangles, compositing errors, flicker) were observed in any captured frame across over 10,000 frames analysed per configuration. Fig.~\ref{fig:windows-diff} shows a pixel-level forensic diff of the Windows capture, and Fig.~\ref{fig:macos-capture} shows the macOS capture comparison.
+As shown in Table~\ref{tab:evasion}, the attack achieved a 100\% evasion rate on all tested platforms. This result is mechanistically expected rather than empirically surprising: \texttt{WDA\_EXCLUDEFROMCAPTURE} and \texttt{sharingType = .none} are binary flags in the OS compositing pipeline that unconditionally exclude the flagged window from all capture output; the evasion is not probabilistic. The captured frames showed the desktop or exam interface as if the invisible window did not exist. No visual artefacts (black rectangles, compositing errors, flicker) were observed in any captured frame across over 10,000 frames analysed per configuration. Fig.~\ref{fig:windows-diff} shows a pixel-level forensic diff of the Windows capture, and Fig.~\ref{fig:macos-capture} shows the macOS capture comparison.
 
 %% Figure 2: Windows Forensic Diff
 \begin{figure}[t]
@@ -435,9 +437,9 @@ As shown in Table~\ref{tab:evasion}, the attack achieved a 100\% evasion rate on
 
 \subsubsection{Behavioural Detection}
 
-\textbf{Gaze analysis}: Members of the research team ($n=8$, all providing informed consent) were asked to read content from the invisible window while a simulated exam was displayed beneath it. Gaze patterns were analysed using a MediaPipe-based tracker. The gaze data showed no statistically significant deviation from baseline exam-taking patterns ($p = 0.41$, paired $t$-test on mean gaze dispersion; Cohen's $d = 0.12$, 95\% CI $[-0.15, 0.39]$), because the invisible content is on the same physical screen as the exam. We note that $n=8$ provides limited statistical power; however, the small effect size ($d = 0.12$) and the mechanistic explanation (same screen, same gaze direction) support the null result beyond the $p$-value alone.
+\textbf{Gaze analysis}: Members of the research team ($n=8$, all providing informed consent) were asked to read content from the invisible window while a simulated exam was displayed beneath it. Gaze patterns were analysed using a MediaPipe-based tracker. The gaze data showed no statistically significant deviation from baseline exam-taking patterns ($t(7) = 0.84$, $p = 0.41$, paired $t$-test on mean gaze dispersion; Cohen's $d = 0.12$, 95\%~CI $[-0.15, 0.39]$), consistent with the mechanistic expectation that invisible content on the same physical screen does not deflect the direction of gaze. With $n=8$, the study has low statistical power; the null result should not be interpreted as proof that gaze-based detection is impossible in all settings. The small effect size ($d = 0.12$) and the mechanistic argument together suggest the attack does not introduce \textit{obvious} gaze signatures, but a definitive conclusion requires a larger study with na\"{i}ve participants.
 
-\textbf{Mouse dynamics}: Mouse movement patterns during invisible window reading sessions showed reduced click frequency (${\sim}18\%$ below baseline mean) and increased cursor dwell time (${\sim}22\%$ above baseline), but these deviations fell within the inter-subject variance observed during standard exam behaviour and did not trigger anomaly detection thresholds calibrated on training data~\cite{dilini2021cheating,wang2020user}.
+\textbf{Mouse dynamics}: Mouse movement patterns during invisible window reading sessions showed reduced click frequency (${\sim}18\%$ below baseline mean) and increased cursor dwell time (${\sim}22\%$ above baseline). Formal significance testing was not performed given the small sample; however, both deviations fell within the inter-subject variance observed during standard exam behaviour and did not trigger the anomaly detection thresholds calibrated on the training data used by~\cite{dilini2021cheating,wang2020user}.
 
 \textbf{Application focus}: On Windows, clicking within the invisible window transfers keyboard focus to the hidden application. This focus change is \textit{not} visible in \texttt{getDisplayMedia()} output (the exam page still appears active in the capture). However, it may be detectable by JavaScript focus/blur event listeners in the exam page if the exam browser loses focus. This represents a potential detection vector discussed in Section~VI.
 
@@ -449,7 +451,7 @@ Detecting the display affinity flag requires calling \texttt{GetWindowDisplayAff
 
 \subsection{Summary of Findings}
 
-The Invisible Window attack achieves 100\% evasion on all tested platforms (Windows 10/11, macOS 14--26) with zero detectable artefacts. The macOS finding is particularly notable: despite Apple's documented ScreenCaptureKit changes in macOS~15, \texttt{sharingType = .none} remains fully effective on macOS~26.3.1, contradicting prevailing community assumptions~\cite{columbusux2025screencapturekit}. Pixel-level forensic analysis confirmed complete evasion on both platforms: on Windows, 80.27\% of pixels in the 200,000-pixel capture region differed between the physical display and the excluded capture (Fig.~\ref{fig:windows-diff}), corresponding exactly to the invisible window's footprint; on macOS, 92\% of pixels (1,086,110 of 1,170,560) were identical between captures with and without the invisible window (Fig.~\ref{fig:macos-capture}), with the remaining 8\% attributable to background terminal scrolling rather than the hidden window. Behavioural detection (gaze tracking, mouse dynamics) proved ineffective because the attack does not alter the test-taker's physical posture or screen-directed attention. Process-level detection is theoretically possible but not implemented by current browser-based proctoring systems.
+The Invisible Window attack achieves 100\% evasion on all tested platforms (Windows 10/11, macOS 14--26) with zero detectable artefacts. The macOS finding is particularly notable: despite Apple's documented ScreenCaptureKit changes in macOS~15, \texttt{sharingType = .none} remains fully effective on macOS~26.3.1, contradicting prevailing community assumptions~\cite{columbusux2025screencapturekit}. Pixel-level forensic analysis confirmed complete evasion on both platforms: on Windows, 80.27\% of pixels in the 200,000-pixel capture region differed between the physical display and the excluded capture (Fig.~\ref{fig:windows-diff}), corresponding exactly to the invisible window's footprint; on macOS, 92\% of pixels (1,086,110 of 1,170,560) were identical between captures with and without the invisible window (Fig.~\ref{fig:macos-capture}), with the remaining 8\% attributable to concurrent background terminal output---confirmed by comparing captures taken with and without the terminal running, independently of the invisible window. Behavioural detection (gaze tracking, mouse dynamics) proved ineffective because the attack does not alter the test-taker's physical posture or screen-directed attention. Process-level detection is theoretically possible but not implemented by current browser-based proctoring systems.
 
 \subsection{Limitations}
 
@@ -466,7 +468,7 @@ We propose and evaluate the following countermeasures against the Invisible Wind
 
 \textbf{Mechanism}: A native proctoring agent enumerates all top-level windows using \texttt{EnumWindows} (Windows) or \texttt{CGWindowListCopyWindowInfo} (macOS) and calls \texttt{GetWindowDisplayAffinity} (Windows) or checks \texttt{sharingType} (macOS) on each window. Any window with a capture-exclusion flag set during an exam session is flagged as suspicious.
 
-\textbf{Feasibility}: High---the API calls are straightforward and require no elevated privileges.
+\textbf{Feasibility}: High on Windows---the API calls require no elevated privileges. On macOS, the enumeration additionally requires Screen Recording permission (a user-approved entitlement in System Preferences~$\to$ Privacy \& Security), which limits silent deployment but is feasible for authorised proctoring agents.
 
 \textbf{Limitations}: (1)~Requires a native agent, not just a browser extension. (2)~The attacker can set the flag only momentarily or toggle it rapidly. (3)~The attacker could name their process to mimic legitimate software (e.g., DRM-protected media players) that legitimately uses display affinity. (4)~Our testing on macOS~26 shows \texttt{sharingType.none} remains effective for capture evasion, making this check necessary on all macOS versions.
 
@@ -488,7 +490,7 @@ We propose and evaluate the following countermeasures against the Invisible Wind
 
 \textbf{Feasibility}: High---requires only JavaScript, no native code.
 
-\textbf{Limitations}: (1)~The invisible window can be designed as ``click-through'' using \texttt{WS\_EX\_TRANSPARENT} (Windows) or \texttt{ignoresMouseEvents} (macOS), preventing focus loss entirely. (2)~Even non-click-through invisible windows may not trigger focus loss if the user only reads content without clicking. (3)~Legitimate focus loss occurs frequently (system notifications, OS dialogs) and produces false positives.
+\textbf{Limitations}: (1)~The invisible window can be designed as ``click-through'' using \texttt{WS\_EX\_TRANSPARENT} (Windows) or \texttt{ignoresMouseEvents} (macOS)---as implemented in Variant~D (Section~IV-A)---preventing focus loss entirely. (2)~Even non-click-through invisible windows may not trigger focus loss if the user only reads content without clicking. (3)~Legitimate focus loss occurs frequently (system notifications, OS dialogs) and produces false positives.
 
 \textbf{Recommendation}: Implement as a supplementary signal, not a primary detector. Pair with other telemetry to reduce false positives.
 
@@ -520,9 +522,9 @@ No single countermeasure provides a complete defence. Table~\ref{tab:countermeas
 \centering
 \caption{Countermeasure Assessment}
 \label{tab:countermeasures}
-\begin{tabular}{p{1.8cm}p{1.5cm}p{1.8cm}p{1.6cm}}
+\begin{tabularx}{\columnwidth}{Xp{1.3cm}p{1.7cm}p{1.5cm}}
 \toprule
-\textbf{Counter\-measure} & \textbf{Effective\-ness} & \textbf{Deploy\-ability} & \textbf{Evasion Difficulty} \\
+\textbf{Countermeasure} & \textbf{Effect.} & \textbf{Deployability} & \textbf{Evasion Diff.} \\
 \midrule
 Flag enumeration & High (Windows) & Medium (native agent) & Medium \\
 Frame comparison & Low & High (JS only) & Low \\
@@ -530,7 +532,7 @@ Focus monitoring & Medium & High (JS only) & Medium \\
 HW attestation & Very High & None (N/A) & Very High \\
 OS capture integrity & High & Low (vendor dep.) & High \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{table}
 
 The most practical near-term defence is a combination of (A)~native agent-based flag enumeration with (C)~JavaScript focus monitoring, supplemented by ongoing advocacy for (E)~OS-level capture integrity APIs.
@@ -596,7 +598,9 @@ We acknowledge that this paper describes a technique that could be misused. Publ
 
 \subsection{Impact on Students}
 
-While proctoring serves academic integrity~\cite{lee2022online,noordegraaf2023ethical}, research consistently shows it imposes psychological costs including increased anxiety and decreased performance~\cite{conijn2022fear,ruth2024cheating,gribbins2023exploration}. Structural bypasses like the Invisible Window show that proctoring creates a false sense of security while imposing real costs on test-takers~\cite{khalil2022nexus,prinsloo2024vulnerable}.
+While proctoring serves academic integrity~\cite{lee2022online,noordegraaf2023ethical}, a substantial body of research documents its psychological costs: increased test anxiety, reduced performance, and perceived privacy violations among proctored students~\cite{conijn2022fear,ruth2024cheating,gribbins2023exploration}. These costs are real regardless of whether proctoring is technically effective.
+
+The Invisible Window attack raises a separate concern: the technical premise of screen-capture-based proctoring is structurally unsound. Institutions that accept the privacy and psychological costs of remote monitoring may not be receiving the security assurances they assume~\cite{khalil2022nexus,prinsloo2024vulnerable}.
 
 \subsection{Human Participants and Ethics Approval}
 
@@ -643,18 +647,27 @@ While no prior academic work has formally analysed the display affinity attack v
 
 \textbf{Distinction from our work.} The commercial tools and open-source PoCs described above demonstrate that the display affinity attack vector is independently known and actively exploited. However, to our knowledge no prior work has: (1)~formally modelled the trust boundary violation between the browser capture API and the OS compositing pipeline; (2)~provided a systematic cross-platform evaluation with pixel-level forensic verification; (3)~analysed which behavioural detection mechanisms can and cannot detect the attack; (4)~proposed and evaluated countermeasures; or (5)~tested the attack on macOS~15+ where the conventional understanding was that Apple mitigated the vulnerability (Section~V). This paper provides the first formal security analysis of a vulnerability class that is already being commercially exploited without academic scrutiny.
 
-\subsection{AI-Assisted Research Methodology and Dual-Use Implications}
+%% ===================================================================
+%% SECTION IX: AI CAPABILITY UPLIFT — A CASE STUDY
+%% ===================================================================
+\section{AI Capability Uplift: A Case Study}
 
-The proof-of-concept implementations, literature synthesis, and forensic evaluation presented in this paper were developed using Claude Opus~4.6 (Anthropic, 1M context window) via Claude Code as the primary research instrument. We disclose this methodology in detail because it constitutes an independent finding with direct implications for AI safety evaluation.
+The proof-of-concept implementations, literature synthesis, and forensic evaluation presented in this paper were developed using Claude Opus~4.6 (Anthropic, 1M context window) via Claude Code as the primary research instrument. We present this methodology as a standalone finding because it provides a concrete, empirically grounded case study directly relevant to AI safety evaluation.
 
-\textbf{Capability uplift measurement.} Exploiting display affinity APIs for proctoring evasion requires familiarity with Win32 internals (\texttt{SetWindowDisplayAffinity} semantics, window handle management), macOS Objective-C/Swift window management (\texttt{NSWindow.sharingType}, ScreenCaptureKit filtering), screen capture pipeline architecture across two operating systems, and forensic verification methodology (pixel-level capture comparison, false-positive elimination). Using Claude as an orchestration layer, a single researcher with security fundamentals but no prior Win32 or ScreenCaptureKit experience produced working, empirically validated PoCs on both platforms within a single research session. The model identified the operationally critical distinction between \texttt{WDA\_MONITOR} (black rectangle artefact) and \texttt{WDA\_EXCLUDEFROMCAPTURE} (zero artefact) from Microsoft's API documentation, and independently flagged the discrepancy between Apple's documented macOS~15 ScreenCaptureKit changes and the actual runtime behaviour of legacy CoreGraphics APIs---the insight that motivated our macOS~26 evaluation and produced the paper's most unexpected finding (Section~V).
+\subsection{Capability Uplift Measurement}
 
-\textbf{Dual-use risk assessment.} These observations provide a concrete, empirically grounded case study for AI safety research on capability uplift and dual-use risk. The same LLM capabilities that accelerated legitimate security research---cross-platform API reasoning, forensically sound code generation, identification of undocumented behavioural discrepancies---are equally accessible to adversaries with no research intent. The effective skill barrier for this attack class dropped from multi-platform systems expertise to introductory security knowledge augmented by a single LLM session. This represents a measurable capability uplift: the attack surface is not only technically accessible (documented OS APIs) but \textit{cognitively} accessible via LLM assistance, compounding the threat to proctoring systems.
+Exploiting display affinity APIs for proctoring evasion requires familiarity with Win32 internals (\texttt{SetWindowDisplayAffinity} semantics, window handle management), macOS Objective-C/Swift window management (\texttt{NSWindow.sharingType}, ScreenCaptureKit filtering), screen capture pipeline architecture across two operating systems, and forensic verification methodology (pixel-level capture comparison, false-positive elimination). Using Claude as an orchestration layer, a single researcher with security fundamentals but no prior Win32 or ScreenCaptureKit experience produced working, empirically validated PoCs on both platforms within a single research session. The model identified the operationally critical distinction between \texttt{WDA\_MONITOR} (black rectangle artefact) and \texttt{WDA\_EXCLUDEFROMCAPTURE} (zero artefact) from Microsoft's API documentation, and independently flagged the discrepancy between Apple's documented macOS~15 ScreenCaptureKit changes and the actual runtime behaviour of legacy CoreGraphics APIs---the insight that motivated our macOS~26 evaluation and produced the paper's most unexpected finding (Section~V).
 
-\textbf{Safety guardrails observation.} This research was conducted in accordance with Anthropic's usage policies. Prompts framed as direct facilitation of academic misconduct were declined by the model; all accepted prompts were contextualised within security research and responsible disclosure. This demonstrates that frontier AI safety measures provide meaningful but incomplete mitigation: the model correctly distinguished between research intent and misuse intent at the prompt level, but the resulting artefacts (working PoC code, forensic methodology) are transferable regardless of the original framing. This boundary between intent-level and artefact-level safety is itself a finding relevant to ongoing AI safety research.
+\subsection{Dual-Use Risk Assessment}
+
+These observations provide a concrete, empirically grounded case study for AI safety research on capability uplift and dual-use risk. The same LLM capabilities that accelerated legitimate security research---cross-platform API reasoning, forensically sound code generation, identification of undocumented behavioural discrepancies---are equally accessible to adversaries with no research intent. The effective skill barrier for this attack class dropped from multi-platform systems expertise to introductory security knowledge augmented by a single LLM session. This represents a measurable capability uplift: the attack surface is not only technically accessible (documented OS APIs) but \textit{cognitively} accessible via LLM assistance, compounding the threat to proctoring systems.
+
+\subsection{Safety Guardrails}
+
+This research was conducted in accordance with Anthropic's usage policies. Prompts framed as direct facilitation of academic misconduct were declined by the model; all accepted prompts were contextualised within security research and responsible disclosure. This demonstrates that frontier AI safety measures provide meaningful but incomplete mitigation: the model correctly distinguished between research intent and misuse intent at the prompt level, but the resulting artefacts (working PoC code, forensic methodology) are transferable regardless of the original framing. This boundary between intent-level and artefact-level safety is itself a finding relevant to ongoing AI safety research.
 
 %% ===================================================================
-%% SECTION IX: CONCLUSION
+%% SECTION X: CONCLUSION
 %% ===================================================================
 \section{Conclusion}
 
@@ -670,9 +683,9 @@ More broadly, this work reinforces the growing academic consensus~\cite{lee2022o
 
 We have followed coordinated vulnerability disclosure principles throughout this research and have notified the relevant OS vendors. We hope this work contributes to the development of more robust, privacy-respecting, and sound approaches to maintaining academic integrity in online education.
 
-\section*{Acknowledgements}
+\section*{Acknowledgment}
 
-This research was conducted using Claude Code powered by Anthropic's Claude Opus~4.6 large language model (1M context window). The author thanks Anthropic for providing the research tooling and notes that the dual-use findings reported in Section~VIII-G---specifically the measured capability uplift from multi-platform systems expertise to introductory security knowledge, the model's independent identification of undocumented API behavioural discrepancies, and the observation of intent-level versus artefact-level safety boundaries---are offered as empirical contributions to Anthropic's ongoing AI safety evaluations. This paper serves as a real-world case study of frontier model dual-use in offensive security research conducted under responsible disclosure, and the author welcomes engagement from Anthropic's safety and policy teams on the implications documented herein.
+This research was conducted using Claude Code powered by Anthropic's Claude Opus~4.6 large language model (1M context window). The author thanks Anthropic for providing the research tooling and notes that the dual-use findings reported in Section~IX---specifically the measured capability uplift from multi-platform systems expertise to introductory security knowledge, the model's independent identification of undocumented API behavioural discrepancies, and the observation of intent-level versus artefact-level safety boundaries---are offered as empirical contributions to Anthropic's ongoing AI safety evaluations. This paper serves as a real-world case study of frontier model dual-use in offensive security research conducted under responsible disclosure, and the author welcomes engagement from Anthropic's safety and policy teams on the implications documented herein.
 
 {\sloppy
 \bibliographystyle{IEEEtran}

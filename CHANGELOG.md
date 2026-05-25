@@ -4,6 +4,75 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## Raouf: 2026-05-25 (AEST) — Rebuild + AGENT.md Creation
+
+### Scope
+Force rebuild of `paper/main.pdf` after audit polish; created `AGENT.md` project rules file.
+
+### Summary
+Forced clean rebuild with `latexmk -pdf -g main.tex`. Output confirmed 13 pages, 0 errors, 0 overfull boxes. Created `AGENT.md` from scratch with project identity, section map, citation rules, writing constraints, dual-use ethics constraints, venue table, and postflight template.
+
+### Files Changed
+- `paper/main.pdf` — **REBUILT** — 13 pages, 320,995 bytes
+- `AGENT.md` — **CREATED** — project rules, constraints, build instructions
+
+### Verification
+- `latexmk -pdf -g main.tex` → `Output written on main.pdf (13 pages, 320995 bytes)`
+- 0 LaTeX errors, 0 overfull boxes
+
+### Follow-ups
+- Decide target venue (USENIX Security fits at 13 pages; IEEE S&P would need ~3-page cut)
+- Verify "Claude Opus 4.6" model name accuracy before final submission
+
+---
+
+## Raouf: 2026-05-25 (AEST) — Full Professional Audit & Polish
+
+### Scope
+Full audit and professional polish of `paper/main.tex` following systematic review against systems-paper-writing and ml-paper-writing frameworks.
+
+### Summary
+Applied 20 targeted fixes across structure, statistical rigour, writing quality, and formatting. Promoted §VIII-G (AI methodology) to a standalone §IX section. Compiled cleanly to 13 pages with zero LaTeX errors.
+
+### Changes Made
+
+| # | File | Change | Category |
+|---|------|--------|----------|
+| 1 | `main.tex` | Abstract: removed `\cite{fabrichq2026cheating}` (no citations in IEEE abstracts); trimmed from ~300 to ~210 words; added "in our controlled evaluation" qualifier | Writing/Style |
+| 2 | `main.tex` | `\thanks{}`: shortened to one line; updated section reference VIII-G → IX | Formatting |
+| 3 | `main.tex` | Contribution 2: "through version~26" → "across macOS versions~14--26" | Technical Accuracy |
+| 4 | `main.tex` | Intro roadmap: added §IX description; updated conclusion to §X | Structure |
+| 5 | `main.tex` | §II-B-2: added note that ScreenCaptureKit requires native Screen Recording entitlement (unavailable to browser proctoring) | Technical Clarity |
+| 6 | `main.tex` | §III: elaborated "Physical observation" limitation — attack is remote-only | Threat Model Rigour |
+| 7 | `main.tex` | Listing 1: added decimal value next to `0x00000011` hex constant | Technical Clarity |
+| 8 | `main.tex` | §IV-A: added Variant D (click-through overlay); fixed "all variants interactive" to accurately scope Variants A–C | Completeness |
+| 9 | `main.tex` | §IV-B: added forward reference to §V for macOS evaluation | Cross-referencing |
+| 10 | `main.tex` | §V-A: added mechanistic explanation for 100% evasion rate after Table 1 | Statistical Rigour |
+| 11 | `main.tex` | §V-B gaze: added degrees of freedom `t(7)=0.84`; reframed null result to avoid overclaiming | Statistical Rigour |
+| 12 | `main.tex` | §V-B mouse: clarified no formal significance test performed given n=8 | Statistical Rigour |
+| 13 | `main.tex` | §V-C: clarified 8% macOS pixel discrepancy attribution methodology | Technical Accuracy |
+| 14 | `main.tex` | §VI-A: added macOS Screen Recording permission requirement to feasibility note | Technical Accuracy |
+| 15 | `main.tex` | §VI-C: cross-referenced Variant D for click-through bypass | Cross-referencing |
+| 16 | `main.tex` | §VII-D: separated psychological harm argument from false-security argument into distinct paragraphs | Writing Quality |
+| 17 | `main.tex` | §VIII-G → §IX: promoted to standalone `\section{AI Capability Uplift: A Case Study}`; promoted three bold headers to `\subsection` level | Structure |
+| 18 | `main.tex` | §IX Conclusion → §X Conclusion: updated comment header | Structure |
+| 19 | `main.tex` | `Acknowledgements` → `Acknowledgment` (IEEE standard spelling); updated cross-reference VIII-G → IX | Style |
+| 20 | `main.tex` | Table 2: switched from fixed `p{...}` columns to `tabularx` with auto-expanding first column | Formatting |
+
+### Verification
+- `latexmk -pdf` compiled cleanly: 13 pages, 0 errors, 0 overfull boxes
+- All cross-references resolve correctly in the restructured section numbering
+
+### Open Issue — Requires Human Verification
+- **Institution**: paper states "Macquarie University" with email `mq.edu.au`. Verify this is correct before submission. If Western Sydney University, update both institution and email fields.
+
+### Follow-ups
+- Decide target venue (IEEE S&P = 10-page limit, would require cuts; USENIX Security = 13-page body, fits as-is)
+- Verify "Claude Opus 4.6" is the accurate model name for the version used during research
+- Add `\usepackage{microtype}` to reduce underfull hbox warnings (cosmetic, not required)
+
+---
+
 ## Raouf: 2026-03-24 (AEST)
 
 ### Scope

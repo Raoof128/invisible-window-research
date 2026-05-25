@@ -88,4 +88,4 @@ CC BY 4.0 (compatible with IEEE later if needed)
 - IEEEtran document class is fully supported on arXiv
 - arXiv submissions before 14:00 ET are announced same day at ~20:00 ET
 - TechRxiv DOI is issued immediately on submission
-- Zenodo DOI: `10.5281/zenodo.20319832` — https://zenodo.org/records/20319832
+- Zenodo DOI: `10.5281/zenodo.20376495` — https://zenodo.org/records/20376495

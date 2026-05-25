@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## Raouf: 2026-05-25 (AEST) — Update DOI to V2
+
+### Scope
+Update Zenodo DOI from V1 (20319832) to V2 (20376495) across all files.
+
+### Summary
+Replaced all occurrences of the V1 DOI/record number with the V2 DOI `10.5281/zenodo.20376495`. PDF rebuilt cleanly.
+
+### Files Changed
+- `paper/main.tex` — updated DOI in `\thanks{}` footnote and `\href`
+- `README.md` — updated badge URL and preprint link
+- `AGENT.md` — updated preprint DOI field
+- `docs/ARXIV-SUBMISSION-GUIDE.md` — updated Zenodo DOI reference
+- `paper/main.pdf` — **REBUILT**
+
+### Verification
+- `latexmk -pdf -g main.tex` → `Output written on main.pdf (13 pages, 320997 bytes)`
+- `grep 20319832` → no matches in any tracked file
+
+### Follow-ups
+- None
+
+---
+
 ## Raouf: 2026-05-25 (AEST) — Rebuild + AGENT.md Creation
 
 ### Scope

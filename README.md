@@ -96,8 +96,8 @@ Developed using Claude Code powered by Claude Opus 4.6 (1M context window). The 
   author       = {Abedini, Mohammad Raouf},
   title        = {{The Invisible Window: Exploiting OS-Level Display Affinity to Bypass WebRTC Proctoring Systems}},
   year         = {2026},
-  doi          = {10.5281/zenodo.20195134},
-  url          = {https://doi.org/10.5281/zenodo.20195134}
+  doi          = {10.5281/zenodo.20376495},
+  url          = {https://doi.org/10.5281/zenodo.20376495}
 }
 ```
 
